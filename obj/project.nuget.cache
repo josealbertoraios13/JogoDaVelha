@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "avkAcSzIzHs=",
+  "success": true,
+  "projectFilePath": "/media/jose_alberto/SS2.1/GitHub/c#-dotnet/JogoDaVelha/JogoDaVelha.csproj",
+  "expectedPackageFiles": [
+    "/home/jose_alberto/.nuget/packages/microsoft.aspnetcore.openapi/9.0.11/microsoft.aspnetcore.openapi.9.0.11.nupkg.sha512",
+    "/home/jose_alberto/.nuget/packages/microsoft.openapi/1.6.17/microsoft.openapi.1.6.17.nupkg.sha512"
+  ],
+  "logs": []
+}
