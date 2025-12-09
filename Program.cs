@@ -1,4 +1,5 @@
 using System;
+using game;
 
 public class Program
 {
@@ -6,45 +7,18 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        // Add services to the container.
-        // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-        builder.Services.AddOpenApi();
+        builder.Services.AddSingleton<Game>();
 
         var app = builder.Build();
 
-        // Configure the HTTP request pipeline.
-        if (app.Environment.IsDevelopment())
-        {
-            app.MapOpenApi();
-        }
+        app.UseWebSockets();
 
-        app.UseHttpsRedirection();
-
-        var summaries = new[]
-        {
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        };
-
-        app.MapGet("/weatherforecast", () =>
-        {
-            var forecast =  Enumerable.Range(1, 5).Select(index =>
-                new WeatherForecast
-                (
-                    DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                    Random.Shared.Next(-20, 55),
-                    summaries[Random.Shared.Next(summaries.Length)]
-                ))
-                .ToArray();
-            return forecast;
-        })
-        .WithName("GetWeatherForecast");
+        app.Map("/ws/create", async (Game g, HttpContext ctx) => g.Create);
+        app.Map("/ws/join", async (Game g, HttpContext ctx) => g.Join);
+        app.Map("/ws/leave", async (Game g, HttpContext ctx) => g.Leave);
+        app.Map("/ws/move", async (Game g, HttpContext ctx) => g.Move);
+        app.Map("/ws/message", async (Game g, HttpContext ctx) => g.Message);
 
         app.Run();
     }
-
-    record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-    {
-        public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-    }
 }
-
