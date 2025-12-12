@@ -15,4 +15,32 @@ public class Player
         this.avatar = avatar;
         this.type = type;
     }
+<<<<<<< HEAD
 }
+=======
+
+    public void GeneratePlayerId(string id)
+    {
+        this.id = id;
+    }
+
+    public void ValidPlayerName(string name)
+    {
+        
+    }
+
+    public void HasPlayerWon(string type, string id)
+    {
+        
+    }
+}
+
+//static - quando pode ser acessado sem instanciar a classe. Métodos gerais para qualquer objeto.
+//Singleton - quando a classe só pode ter uma instância. Usado para gerenciar estados globais, como configurações ou conexões de banco de dados.
+
+
+
+
+
+
+>>>>>>> 89f3303 (feat(*): salvando alterações)
