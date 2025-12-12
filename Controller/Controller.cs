@@ -18,8 +18,6 @@ public class Controller
     
     public async Task Create(HttpContext context)
     {
-
-        Cachorro._instance.taSujo = false;
         if(context.WebSockets.IsWebSocketRequest){
             var webSocket = await context.WebSockets.AcceptWebSocketAsync();
 
