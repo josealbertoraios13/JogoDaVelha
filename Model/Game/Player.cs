@@ -17,31 +17,4 @@ public class Player
         this.avatar = avatar;
         this.type = type;
     }
-
-    public void DD()
-    {
-        Cachorro cachorro = new();
-    }
-
-
 }
-
-// Singleton
-public class Cachorro
-{
-    public static Cachorro _instance;
-    public bool taSujo;
-
-    public Cachorro(){
-        _instance = this;
-    }
-
-    public static void LavarCachorro(Cachorro cachorro)
-    {
-        cachorro.taSujo = false;
-    }
-}
-
-
-
-
