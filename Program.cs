@@ -1,50 +1,30 @@
 using System;
+using System.Threading.Tasks;
+using controller;
+using game;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        // Add services to the container.
-        // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-        builder.Services.AddOpenApi();
+        builder.Services.AddSingleton<Game>();
+        builder.Services.AddSingleton<Controller>();
 
         var app = builder.Build();
 
-        // Configure the HTTP request pipeline.
-        if (app.Environment.IsDevelopment())
-        {
-            app.MapOpenApi();
-        }
+        app.UseWebSockets();
 
-        app.UseHttpsRedirection();
+        Game game = new();
+        Controller controller = new(game);
 
-        var summaries = new[]
-        {
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        };
+        app.Map("/ws/create", async (HttpContext context) => await controller.Create(context));
+        app.Map("/ws/join", async (HttpContext context) => await controller.Join(context));
+        app.Map("/ws/leave", async (HttpContext context) => await controller.Leave(context));
+        app.Map("/ws/move", async (HttpContext context) => await controller.Move(context));
+        app.Map("/ws/message", async (HttpContext context) => await controller.Message(context));
 
-        app.MapGet("/weatherforecast", () =>
-        {
-            var forecast =  Enumerable.Range(1, 5).Select(index =>
-                new WeatherForecast
-                (
-                    DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                    Random.Shared.Next(-20, 55),
-                    summaries[Random.Shared.Next(summaries.Length)]
-                ))
-                .ToArray();
-            return forecast;
-        })
-        .WithName("GetWeatherForecast");
-
-        app.Run();
-    }
-
-    record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-    {
-        public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+        await app.RunAsync();
     }
 }
-
