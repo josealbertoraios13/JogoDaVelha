@@ -1,7 +1,7 @@
 using System;
 using model.game;
 
-namespace response;
+namespace model.requests;
 public record CreateResquest
 {
     public Player? Player {get; init;}

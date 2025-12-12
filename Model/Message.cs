@@ -1,6 +1,5 @@
 using System;
 
-
 namespace model;
 
 public record MessageRequest
