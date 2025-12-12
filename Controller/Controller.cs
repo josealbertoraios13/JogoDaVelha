@@ -18,8 +18,6 @@ public class Controller
     
     public async Task Create(HttpContext context)
     {
-
-        Cachorro._instance.taSujo = false;
         if(context.WebSockets.IsWebSocketRequest){
             var webSocket = await context.WebSockets.AcceptWebSocketAsync();
 
@@ -75,10 +73,8 @@ public class Controller
             var webSocket = await context.WebSockets.AcceptWebSocketAsync();
             Console.WriteLine("Connect");
 
-            // Para quê eu vou usar isso??
             var buffer = new byte[1024];
             
-            // Pq desse loop??
             while (true)
             {
                 var result = await webSocket.ReceiveAsync(buffer, CancellationToken.None);

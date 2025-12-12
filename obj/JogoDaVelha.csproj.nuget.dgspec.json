@@ -1,26 +1,25 @@
 {
   "format": 1,
   "restore": {
-    "/media/jose_alberto/SS2.1/GitHub/c#-dotnet/JogoDaVelha/JogoDaVelha.csproj": {}
+    "C:\\GitHub\\JogoDaVelha\\JogoDaVelha.csproj": {}
   },
   "projects": {
-    "/media/jose_alberto/SS2.1/GitHub/c#-dotnet/JogoDaVelha/JogoDaVelha.csproj": {
+    "C:\\GitHub\\JogoDaVelha\\JogoDaVelha.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/media/jose_alberto/SS2.1/GitHub/c#-dotnet/JogoDaVelha/JogoDaVelha.csproj",
+        "projectUniqueName": "C:\\GitHub\\JogoDaVelha\\JogoDaVelha.csproj",
         "projectName": "JogoDaVelha",
-        "projectPath": "/media/jose_alberto/SS2.1/GitHub/c#-dotnet/JogoDaVelha/JogoDaVelha.csproj",
-        "packagesPath": "/home/jose_alberto/.nuget/packages/",
-        "outputPath": "/media/jose_alberto/SS2.1/GitHub/c#-dotnet/JogoDaVelha/obj/",
+        "projectPath": "C:\\GitHub\\JogoDaVelha\\JogoDaVelha.csproj",
+        "packagesPath": "C:\\Users\\att\\.nuget\\packages\\",
+        "outputPath": "C:\\GitHub\\JogoDaVelha\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/home/jose_alberto/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\att\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net9.0"
         ],
         "sources": {
-          "/usr/lib/dotnet/library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -69,7 +68,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/9.0.112/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.112/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

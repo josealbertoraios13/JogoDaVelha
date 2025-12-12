@@ -18,7 +18,7 @@ public class Game
         var response = new CreateResponse()
         {
             player = player,
-            room = room  
+            room = room
         };
         
         return response;

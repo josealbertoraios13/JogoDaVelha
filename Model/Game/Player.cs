@@ -18,29 +18,26 @@ public class Player
         this.type = type;
     }
 
-    public void DD()
+    public void GeneratePlayerId(string id)
     {
-        Cachorro cachorro = new();
+        this.id = id;
     }
 
+    public void ValidPlayerName(string name)
+    {
+        
+    }
 
+    public void HasPlayerWon(string type, string id)
+    {
+        
+    }
 }
 
-// Singleton
-public class Cachorro
-{
-    public static Cachorro _instance;
-    public bool taSujo;
+//static - quando pode ser acessado sem instanciar a classe. Métodos gerais para qualquer objeto.
+//Singleton - quando a classe só pode ter uma instância. Usado para gerenciar estados globais, como configurações ou conexões de banco de dados.
 
-    public Cachorro(){
-        _instance = this;
-    }
 
-    public static void LavarCachorro(Cachorro cachorro)
-    {
-        cachorro.taSujo = false;
-    }
-}
 
 
 
