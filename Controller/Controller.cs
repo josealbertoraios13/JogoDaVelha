@@ -1,105 +1,68 @@
-using System;
+using System.Net;
 using System.Net.WebSockets;
-using System.Text;
-using System.Text.Json;
-using game;
-using model.game;
-using model.requests;
+using Microsoft.AspNetCore.Mvc;
 
 namespace controller;
 
-public class Controller
+[ApiController]
+public class Controller : WebSocketController
 {
-    public readonly Game game;
-    public Controller(Game _game)
+    // Endpoint responsável por iniciar conexões WebSocket.
+    // A rota define qual ação (WebSocketRouteType) será executada pelo servidor.
+    [Route("/ws/{route}")]
+    public async Task Socket(string route)
     {
-        game = _game;
-    }
-    
-    public async Task Create(HttpContext context)
-    {
-        if(context.WebSockets.IsWebSocketRequest){
-            var webSocket = await context.WebSockets.AcceptWebSocketAsync();
-
-            var buffer = new byte[1024];
-
-            while (true)
-            {
-                var request = await webSocket.ReceiveAsync(buffer, CancellationToken.None);
-
-                var requestStr = Encoding.UTF8.GetString(buffer, 0, request.Count);
-
-                Player dto = JsonSerializer.Deserialize<Player>(requestStr)!;
-
-                // Envia o dto para o Game criar a sala e recebe o response adequado
-                var response = await game.Create(dto);
-
-                if(request.MessageType == WebSocketMessageType.Close)
-                {
-                    await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed", CancellationToken.None);
-                    break;
-                }
-
-                var responseEncoding = Encoding.UTF8.GetBytes("Recebi meu nobre");
-                await webSocket.SendAsync(responseEncoding, WebSocketMessageType.Text, true, CancellationToken.None);
-            }
-        }
-        else
+        // Verifica se a requisição recebida é do tipo WebSocket
+        if (!HttpContext.WebSockets.IsWebSocketRequest)
         {
-            context.Response.StatusCode = 400;
+            // Caso não seja, retorna erro 400 (Bad Request)
+            HttpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+            return;
         }
 
-    }
-
-    public async Task Join(HttpContext context)
-    {
-        await Task.Yield();
-    }
-
-    public async Task Leave(HttpContext context)
-    {
-        await Task.Yield();
-    }
-
-    public async Task Move(HttpContext context)
-    {
-        await Task.Yield();
-    }
-
-    public async Task Message(HttpContext context)
-    {
-        if (context.WebSockets.IsWebSocketRequest)
+        // Converte o valor da rota (string) para o enum WebSocketRouteType,
+        // ignorando diferença entre maiúsculas e minúsculas
+        if (!Enum.TryParse<WebSocketRouteType>(route, true, out var webSocketRouteType))
         {
-            var webSocket = await context.WebSockets.AcceptWebSocketAsync();
-            Console.WriteLine("Connect");
-
-            // Para quê eu vou usar isso??
-            var buffer = new byte[1024];
-            
-            // Pq desse loop??
-            while (true)
-            {
-                var result = await webSocket.ReceiveAsync(buffer, CancellationToken.None);
-                
-                if(result.MessageType == WebSocketMessageType.Close)
-                {
-                    await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed", CancellationToken.None);
-                    Console.WriteLine("Desconnect");
-                    break;
-                }
-
-                var request = Encoding.UTF8.GetString(buffer, 0, result.Count);
-
-                Console.WriteLine($"Mensagem Recebida: {request} \n Processando...");
-                await Task.Delay(10000);
-
-                var response = Encoding.UTF8.GetBytes("Recebi meu nobre");
-                await webSocket.SendAsync(response, WebSocketMessageType.Text, true, CancellationToken.None);
-            }
+            // Retorna erro caso a rota informada não seja válida
+            HttpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+            return;
         }
-        else
+
+        // Aceita a conexão WebSocket e cria o canal de comunicação
+        var ws = await HttpContext.WebSockets.AcceptWebSocketAsync();
+
+        // Direciona a conexão para o manipulador correspondente à rota solicitada
+        switch (webSocketRouteType)
         {
-            context.Response.StatusCode = 400;
+            case WebSocketRouteType.Create:
+                await Handle(ws, WebSocketRouteType.Create);
+                break;
+
+            case WebSocketRouteType.Join:
+                await Handle(ws, WebSocketRouteType.Join);
+                break;
+
+            case WebSocketRouteType.Leave:
+                // Rota ainda não implementada
+                break;
+
+            case WebSocketRouteType.Move:
+                // Rota ainda não implementada
+                break;
+
+            case WebSocketRouteType.Message:
+                // Rota ainda não implementada
+                break;
+
+            default:
+                // Encerra a conexão caso a rota seja inválida ou não suportada
+                await ws.CloseAsync(
+                    WebSocketCloseStatus.InvalidPayloadData,
+                    "Rota inválida",
+                    CancellationToken.None
+                );
+                break;
         }
     }
 }
