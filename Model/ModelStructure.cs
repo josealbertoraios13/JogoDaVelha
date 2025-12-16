@@ -1,10 +1,8 @@
-using System;
-using System.Linq;
 using System.Security.Cryptography;
 
 namespace model;
 
-public abstract class ModelGeralStructure
+public abstract class ModelStructure //rever nome
 {
     public string id {get; set;} = string.Empty;
 
