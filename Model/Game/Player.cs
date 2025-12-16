@@ -1,6 +1,6 @@
 namespace model.game;
 
-public class Player : ModelGeralStructure
+public class Player : ModelStructure
 {
     public string name {get; set;} = string.Empty;
     public string avatar {get; set;} = string.Empty;
@@ -9,7 +9,7 @@ public class Player : ModelGeralStructure
 
     public Player(string name, string avatar, string type)
     {
-        GenerateId();
+        GenerateId(); //????
         this.name = name;
         this.avatar = avatar;
         this.type = type;

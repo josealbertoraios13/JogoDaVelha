@@ -1,6 +1,6 @@
 namespace model.game;
 
-public class Room : ModelGeralStructure
+public class Room : ModelStructure
 {
     public List<Player> Players {get; set;} = new ();
     public Player? playerX {get; set;}
@@ -34,7 +34,7 @@ public class Room : ModelGeralStructure
         if (Players.Count >= 2)
         {
             playerX = Players.FirstOrDefault(p => p.type == "X");
-            playerO = Players.FirstOrDefault(p => p.type == "O");
+            playerO = Players.FirstOrDefault(p => p.type == "O"); //!
         }
 >>>>>>> 026c084 (Validações e gerar id)
     }

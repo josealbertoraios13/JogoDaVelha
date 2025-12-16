@@ -1,33 +1,34 @@
 using System.Data.Common;
 using System.Xml;
+using model.game;
 
 namespace game;
 
 public class GameLogic
 {
     public string[,] table = new string[3, 3];
-    //public string currentTurn = playerX;
+    public Player? currentTurn;
+
     public void CleanBoard()
     {
         Array.Clear(table, 0, table.Length);
     }
 
-    public void CurrentTurn(string playerX, string playerO, string currentTurn)
+    public void SetInitialTurn(Room room)
     {
-        if (currentTurn == playerX) currentTurn = playerO;
-        else currentTurn = playerX;
+        currentTurn = room.playerX;
+    }
+
+    public void ChangeTurn(Room room)
+    {
+        if (currentTurn == room.playerX) currentTurn = room.playerO;
+        currentTurn = room.playerX;
     }
 
     //public bool IsPositionEmpty(Block block)
     //{
-        //return table[block.x, block.y] == '\0';
+        //return table[block.x, block.y] == "null";
     //}
-
-    public bool ValidPlay(string id, string currentTurn)
-    {
-        return id == currentTurn;
-        
-    }
 
     //public string Play(Block block, string type, string id, string currentTurn)
     //{
@@ -39,20 +40,21 @@ public class GameLogic
         //return "Invalid play";
     //}
 
-    public bool HasWinner(string playerType)
-    {
-        for (int i = 0; i < 3; i++)
-        {
-            if (table[i, 0] == playerType && table[i, 1] == playerType && table[i, 2] == playerType)
+    public bool HasWinner()
+    {   
+        if (currentTurn != null)
+            for (int i = 0; i < 3; i++)
+            {
+                if (table[i, 0] == currentTurn.type && table[i, 1] == player.type && table[i, 2] == player.type)
+                    return true;
+                if (table[0, i] == player.type && table[1, i] == player.type && table[2, i] == player.type)
+                    return true;
+            }
+            if (table[0, 0] == player.type && table[1, 1] == player.type && table[2, 2] == player.type)
                 return true;
-            if (table[0, i] == playerType && table[1, i] == playerType && table[2, i] == playerType)
+            if (table[2, 0] == player.type && table[1, 1] == player.type && table[0, 2] == player.type)
                 return true;
-        }
-        if (table[0, 0] == playerType && table[1, 1] == playerType && table[2, 2] == playerType)
-            return true;
-        if (table[2, 0] == playerType && table[1, 1] == playerType && table[0, 2] == playerType)
-            return true;
-        return false;
+            return false;
     }
 
     public bool Draw()
@@ -65,9 +67,9 @@ public class GameLogic
         return true;
     }
 
-    public void ShouldEndGame()
+    public void ShouldEndGame(Room room)
     {
-        if (Draw() || HasWinner("X") || HasWinner("O"))
+        if (Draw() || HasWinner(room.playerX.type) || HasWinner(room.playerX.type))
         {
             CleanBoard();
         }
