@@ -1,5 +1,3 @@
-using System;
-
 namespace model.game;
 
 public class Room
@@ -8,9 +6,22 @@ public class Room
 
     public List<Player> Players {get; set;} = new ();
 
-    public Room(string id, Player player)
+    public Room(Player player)
     {
-        this.id = id;
+        this.id = GetId();
         this.Players.Add(player);
+    }
+
+    public static string GetId()
+    {
+        var random = new Random();
+        var id = string.Empty;
+
+        for(int i = 0; i < 6; i++)
+        {
+            id += random.Next(0, 9);
+        }
+
+        return id;
     }
 }

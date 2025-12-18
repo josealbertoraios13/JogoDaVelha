@@ -1,7 +1,4 @@
-using System;
-using System.Threading.Tasks;
-using controller;
-using game;
+using application;
 
 public class Program
 {
@@ -9,21 +6,15 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        builder.Services.AddSingleton<Game>();
-        builder.Services.AddSingleton<Controller>();
+        builder.Services.AddControllers();
 
+        Application game = new();
+        
         var app = builder.Build();
 
         app.UseWebSockets();
 
-        Game game = new();
-        Controller controller = new(game);
-
-        app.Map("/ws/create", async (HttpContext context) => await controller.Create(context));
-        app.Map("/ws/join", async (HttpContext context) => await controller.Join(context));
-        app.Map("/ws/leave", async (HttpContext context) => await controller.Leave(context));
-        app.Map("/ws/move", async (HttpContext context) => await controller.Move(context));
-        app.Map("/ws/message", async (HttpContext context) => await controller.Message(context));
+        app.MapControllers();
 
         await app.RunAsync();
     }
