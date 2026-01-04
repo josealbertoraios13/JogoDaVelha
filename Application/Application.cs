@@ -61,13 +61,13 @@ public class Application
         var room = activatedRooms.FirstOrDefault(r => r.id == joinRequest.IdRoom);
 
         if(room is null)
-            throw new KeyNotFoundException("Sala não encontrada");        
+            throw new KeyNotFoundException("Sala não encontrada");
 
         room.Players.Add(joinRequest.Player);
 
         return new RoomResponse()
         {
-            room = room  
+            room = room
         };
     }
 

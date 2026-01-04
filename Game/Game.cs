@@ -1,27 +1,44 @@
-using System;
-using System.Text.Json;
 using model.game;
-using model.responses;
 
 namespace game;
 
-public class Game
+class Game
 {
-    public static List<Player> activePlayers = new();
-    public static List<Room> activatedRooms = new();
+    public string[,] Table = new string[3,3];
+    public Player? turn;
 
-
-    public async Task<CreateResponse> Create(Player? player)
+    public void SendTable()
     {
-        var room = new Room("64712", player!);
-
-        var response = new CreateResponse()
-        {
-            player = player,
-            room = room
-        };
-        
-        return response;
+        return this.table;
     }
 
+    public void CurrentTurn()
+    {
+        
+    }
+
+    public void MakeMove(string playerId, int x, int y)
+    {
+        
+    }
+
+    public void ChangeTurn()
+    {
+        
+    }
+
+    public void CheckWinner()
+    {
+        
+    }
+
+    public void HasDraw()
+    {
+        
+    }
+
+    public void Reset()
+    {
+        
+    }
 }

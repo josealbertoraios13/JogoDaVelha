@@ -1,41 +1,29 @@
 namespace model.game;
 
-public class Room : ModelStructure
+public class Room : IdManager
 {
-    public List<Player> Players {get; set;} = new ();
-    public Player? playerX {get; set;}
-    public Player? playerO {get; set;}
+    public string id {get; init;} = string.empty;
+    public List<Player> Players {get;set;} = new ();
 
     public Room(Player player)
     {
-<<<<<<< HEAD
-        this.id = GetId();
-        this.Players.Add(player);
+        this.id = GenerateCode();
+        AddPlayer(player);
     }
 
-    public static string GetId()
+    public Player AddPlayer(Player player)
     {
-        var random = new Random();
-        var id = string.Empty;
+        bool hasX = Players.Any(p => p.value == PlayerValue.X);
+        bool hasO = Players.Any(p => p.value == PlayerValue.O);
 
-        for(int i = 0; i < 6; i++)
-        {
-            id += random.Next(0, 9);
-        }
-
-        return id;
-=======
-        GenerateId();
-        this.Players.Add(player);
-    }
-
-    public void PlayersType()
-    {
-        if (Players.Count >= 2)
-        {
-            playerX = Players.FirstOrDefault(p => p.type == "X");
-            playerO = Players.FirstOrDefault(p => p.type == "O"); //!
-        }
->>>>>>> 026c084 (Validações e gerar id)
+        if(!hasX)
+            player.value = PlayerValue.X;
+        else if(!hasO)
+            player.value = PlayerValue.O;
+        else
+            player.value = PlayerValue.Spectator;
+        
+        Players.Add(player);
+        return player;
     }
 }
