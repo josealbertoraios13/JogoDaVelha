@@ -11,10 +11,15 @@ public class Room : IdManager
         AddPlayer(player);
     }
 
-    public Player AddPlayer(Player player)
+    public void CheckPlayers(Player player)
     {
         bool hasX = Players.Any(p => p.value == PlayerValue.X);
         bool hasO = Players.Any(p => p.value == PlayerValue.O);
+    }
+
+    public Player AddPlayer(Player player)
+    {
+        CheckPlayers(player);
 
         if(!hasX)
             player.value = PlayerValue.X;
@@ -25,5 +30,18 @@ public class Room : IdManager
         
         Players.Add(player);
         return player;
+    }
+
+    public SetGame(Player player)
+    {
+        CheckPlayers(player)
+        
+        if (hasX && hasO)
+        {
+            Player playerX = Players.FirstOrDefault(p => p.value == PlayerType.X);
+            Player playerO = Players.FirstOrDefault(p => p.value == PlayerType.O);
+        }
+
+        Game(playerX, playerO);
     }
 }
