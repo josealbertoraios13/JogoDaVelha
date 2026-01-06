@@ -34,7 +34,7 @@ public class Room : IdManager
 
     public SetGame(Player player)
     {
-        CheckPlayers(player)
+        CheckPlayers(player);
         
         if (hasX && hasO)
         {
