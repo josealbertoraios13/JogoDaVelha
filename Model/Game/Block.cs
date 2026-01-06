@@ -1,8 +1,13 @@
 namespace model.game;
 
-public struct Block
+public sealed class Block
 {
-    int x {get; set;}
-    int y {get; set;} 
-    string type {get; set;}
+    public int x {get; set;}
+    public int y {get; set;}
+    public string type {get; set;} = string.Empty;
+    
+    public bool Valid()
+    {
+        return ((x && y < 3) && (type == "X" || "O"));
+    }
 }

@@ -1,27 +1,51 @@
 namespace model.game;
 
-public class Room
+public class Room : IdManager
 {
     public string id {get; init;} = string.Empty;
+    public List<Player> Players {get;set;} = new ();
 
-    public List<Player> Players {get; set;} = new ();
+    private bool hasX;
+    private bool hasO;
 
     public Room(Player player)
     {
-        this.id = GetId();
-        this.Players.Add(player);
+        this.id = GenerateCode();
+        AddPlayer(player);
     }
 
-    public static string GetId()
+    public void CheckPlayers(Player player)
     {
-        var random = new Random();
-        var id = string.Empty;
+        hasX = Players.Any(p => p.Value == PlayerValue.X);
+        hasO = Players.Any(p => p.Value == PlayerValue.O);
+    }
 
-        for(int i = 0; i < 6; i++)
+    public Player AddPlayer(Player player)
+    {
+        CheckPlayers(player);
+
+        if(!hasX)
+            player.Value = PlayerValue.X;
+        else if(!hasO)
+            player.Value = PlayerValue.O;
+        else
+            player.Value = PlayerValue.Spectator;
+        
+        Players.Add(player);
+        return player;
+    }
+
+    public void SetGame(Player player)
+    {
+        CheckPlayers(player);
+        
+        if (hasX && hasO)
         {
-            id += random.Next(0, 9);
+            var playerX = Players.FirstOrDefault(p => p.Value == PlayerValue.X);
+            var playerO = Players.FirstOrDefault(p => p.Value == PlayerValue.O);
         }
 
-        return id;
+        //Game(playerX, playerO);
+        // Não sei o que você queria fazer aqui
     }
 }
