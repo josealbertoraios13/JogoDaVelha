@@ -2,8 +2,11 @@ namespace model.game;
 
 public class Room : IdManager
 {
-    public string id {get; init;} = string.empty;
+    public string id {get; init;} = string.Empty;
     public List<Player> Players {get;set;} = new ();
+
+    private bool hasX;
+    private bool hasO;
 
     public Room(Player player)
     {
@@ -13,8 +16,8 @@ public class Room : IdManager
 
     public void CheckPlayers(Player player)
     {
-        bool hasX = Players.Any(p => p.value == PlayerValue.X);
-        bool hasO = Players.Any(p => p.value == PlayerValue.O);
+        hasX = Players.Any(p => p.Value == PlayerValue.X);
+        hasO = Players.Any(p => p.Value == PlayerValue.O);
     }
 
     public Player AddPlayer(Player player)
@@ -22,11 +25,11 @@ public class Room : IdManager
         CheckPlayers(player);
 
         if(!hasX)
-            player.value = PlayerValue.X;
+            player.Value = PlayerValue.X;
         else if(!hasO)
-            player.value = PlayerValue.O;
+            player.Value = PlayerValue.O;
         else
-            player.value = PlayerValue.Spectator;
+            player.Value = PlayerValue.Spectator;
         
         Players.Add(player);
         return player;
@@ -38,10 +41,11 @@ public class Room : IdManager
         
         if (hasX && hasO)
         {
-            Player playerX = Players.FirstOrDefault(p => p.value == PlayerType.X);
-            Player playerO = Players.FirstOrDefault(p => p.value == PlayerType.O);
+            var playerX = Players.FirstOrDefault(p => p.Value == PlayerValue.X);
+            var playerO = Players.FirstOrDefault(p => p.Value == PlayerValue.O);
         }
 
         //Game(playerX, playerO);
+        // Não sei o que você queria fazer aqui
     }
 }

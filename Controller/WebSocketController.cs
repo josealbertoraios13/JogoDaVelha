@@ -17,7 +17,8 @@ public abstract class WebSocketController : ControllerBase
         Join,
         Leave,
         Move,
-        Message    }
+        Message   
+    }
 
     protected readonly Dictionary<WebSocketRouteType, WebSocketRouteModel> socketDictionary = new()
     {
