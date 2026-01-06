@@ -32,7 +32,7 @@ public class Room : IdManager
         return player;
     }
 
-    public SetGame(Player player)
+    public void SetGame(Player player)
     {
         CheckPlayers(player);
         
@@ -42,6 +42,6 @@ public class Room : IdManager
             Player playerO = Players.FirstOrDefault(p => p.value == PlayerType.O);
         }
 
-        Game(playerX, playerO);
+        //Game(playerX, playerO);
     }
 }
