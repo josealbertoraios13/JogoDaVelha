@@ -17,7 +17,8 @@ public abstract class WebSocketController : ControllerBase
         Join,
         Leave,
         Move,
-        Message    }
+        Message   
+    }
 
     protected readonly Dictionary<WebSocketRouteType, WebSocketRouteModel> socketDictionary = new()
     {
@@ -60,7 +61,7 @@ public abstract class WebSocketController : ControllerBase
                     var responseJson = JsonSerializer.Serialize(
                         responseDto, 
                         socketModel.response!,
-                         jsonOptions);
+                        jsonOptions);
 
                     var responseBytes = Encoding.UTF8.GetBytes(responseJson);
                 

@@ -7,6 +7,9 @@ public class Room : IdManager
     public string id {get; init;} = string.Empty;
     public List<Player> Players {get;set;} = new ();
 
+    private bool hasX;
+    private bool hasO;
+
     public Room(Player player)
     {
         this.id = GenerateCode();
@@ -23,17 +26,17 @@ public class Room : IdManager
     public Player AddPlayer(Player player, bool hasX, bool hasO)
     {
         if(!hasX)
-            player.value = PlayerValue.X;
+            player.Value = PlayerValue.X;
         else if(!hasO)
-            player.value = PlayerValue.O;
+            player.Value = PlayerValue.O;
         else
-            player.value = PlayerValue.Spectator;
+            player.Value = PlayerValue.Spectator;
         
         Players.Add(player);
         return player;
     }
 
-    public SetGame(Player player)
+    public void SetGame(Player player)
     {
         CheckPlayers(player);
         
@@ -43,6 +46,6 @@ public class Room : IdManager
             Player playerO = Players.FirstOrDefault(p => p.value = PlayerValue.O);
         }
 
-        Game(playerX, playerO);
+        //Game(playerX, playerO);
     }
 }
