@@ -1,8 +1,10 @@
 namespace model.game;
 
+using model.game.enums;
+
 public class Room : IdManager
 {
-    public string id {get; init;} = string.empty;
+    public string id {get; init;} = string.Empty;
     public List<Player> Players {get;set;} = new ();
 
     public Room(Player player)
@@ -13,14 +15,13 @@ public class Room : IdManager
 
     public void CheckPlayers(Player player)
     {
-        bool hasX = Players.Any(p => p.value == PlayerValue.X);
-        bool hasO = Players.Any(p => p.value == PlayerValue.O);
+        bool hasX = Players.Any(p => p.value = PlayerValue.X);
+        bool hasO = Players.Any(p => p.value = PlayerValue.O);
+
     }
 
-    public Player AddPlayer(Player player)
+    public Player AddPlayer(Player player, bool hasX, bool hasO)
     {
-        CheckPlayers(player);
-
         if(!hasX)
             player.value = PlayerValue.X;
         else if(!hasO)
@@ -34,12 +35,12 @@ public class Room : IdManager
 
     public SetGame(Player player)
     {
-        CheckPlayers(player)
+        CheckPlayers(player);
         
         if (hasX && hasO)
         {
-            Player playerX = Players.FirstOrDefault(p => p.value == PlayerType.X);
-            Player playerO = Players.FirstOrDefault(p => p.value == PlayerType.O);
+            Player playerX = Players.FirstOrDefault(p => p.value = PlayerValue.X);
+            Player playerO = Players.FirstOrDefault(p => p.value = PlayerValue.O);
         }
 
         Game(playerX, playerO);
