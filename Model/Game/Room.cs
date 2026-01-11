@@ -1,6 +1,8 @@
+using model.common;
+
 namespace model.game;
 
-public class Room
+public class Room : GenerateId
 {
     public string id {get; init;} = string.Empty;
 
@@ -8,20 +10,7 @@ public class Room
 
     public Room(Player player)
     {
-        this.id = GetId();
+        this.id = GenerateCode();
         this.Players.Add(player);
-    }
-
-    public static string GetId()
-    {
-        var random = new Random();
-        var id = string.Empty;
-
-        for(int i = 0; i < 6; i++)
-        {
-            id += random.Next(0, 9);
-        }
-
-        return id;
     }
 }
