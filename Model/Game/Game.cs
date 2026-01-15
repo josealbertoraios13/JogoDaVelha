@@ -2,7 +2,7 @@ using model.game.enums;
 
 namespace model.game;
 
-class Game
+public class Game
 {
     public BlockValues[,] table = new BlockValues[3,3];
     public Player currentTurn;
@@ -45,61 +45,49 @@ class Game
         SendCurrentTurn();
     }
 
-    public bool CheckWinner()
+    private bool CheckWinner()
     {
-        for (int i = 0; i < 3; i++)
+        int [][][] winPatterns =
         {
-            if(IsEqual(this.table[i,0], this.table[i,1], this.table[i,2]))
-            {
-                int[,] winnerBlocks = new int[,]
-                {
-                    {i,0},
-                    {i,1},
-                    {i,2}
-                };
-                SendWinnerNotification(currentTurn.id, winnerBlocks);
-                return true;
-            };
+            [[0,0], [0,1], [0,2]],
+            [[1,0], [1,1], [1,2]],
+            [[2,0], [2,1], [2,2]],
 
-            if(IsEqual(this.table[0,i], this.table[1,i], this.table[2,i]))
+            [[0,0], [1,0], [2,0]],
+            [[0,1], [1,1], [2,1]],
+            [[0,2], [1,2], [2,2]],
+
+            [[0,0], [1,1], [2,2]],
+            [[0,2], [1,1], [2,0]]
+        };
+
+        foreach (var pattern in winPatterns)
+        {
+            var blockPatternA = pattern[0];
+            var blockPatternB = pattern[1];
+            var blockPatternC = pattern[2];
+
+            if (IsEqual(
+                table[blockPatternA[0], blockPatternA[1]],
+                table[blockPatternB[0], blockPatternB[1]],
+                table[blockPatternC[0], blockPatternC[1]]
+            ))
             {
-                int[,] winnerBlocks = new int[,]
+                int[,] winnerBlocks =
                 {
-                    {0,i},
-                    {1,i},
-                    {2,i}
+                    { blockPatternA[0], blockPatternA[1] },
+                    { blockPatternB[0], blockPatternB[1] },
+                    { blockPatternC[0], blockPatternC[1] }
                 };
+
                 SendWinnerNotification(currentTurn.id, winnerBlocks);
                 return true;
             }
         }
-        if(IsEqual(this.table[0,0], this.table[1,1], this.table[2,2]))
-        {
-            int[,] winnerBlocks = new int[,]
-                {
-                    {0,0},
-                    {1,1},
-                    {2,2}
-                };
-                SendWinnerNotification(currentTurn.id, winnerBlocks);
-                return true;
-        }
-
-        if(IsEqual(this.table[0,2], this.table[1,1], this.table[2,0]))
-        {
-            int[,] winnerBlocks = new int[,]
-                {
-                    {0,2},
-                    {1,1},
-                    {2,0}
-                };
-                SendWinnerNotification(currentTurn.id, winnerBlocks);
-                return true;
-        }
         return false;
     }
-
-    public bool HasDraw()
+    
+    private bool HasDraw()
     {
         for (int i = 0; i < 3; i++)
         {
@@ -116,7 +104,7 @@ class Game
         return true;
     }
 
-    public void ChangeTurn()
+    private void ChangeTurn()
     {
         if (this.currentTurn == this.playerX)
         {
@@ -126,7 +114,7 @@ class Game
         this.currentTurn = this.playerX;
     }
 
-    public async Task Reset()
+    private async Task Reset()
     {
         table = new BlockValues[3,3];
         currentTurn = playerX;
@@ -136,7 +124,7 @@ class Game
 
     }
 
-    public async Task SetTimeOut()
+    private async Task SetTimeOut()
     {
         Console.WriteLine("Game has been reset.");
         for (int i = 10; i >= 0; i--)
@@ -161,17 +149,17 @@ class Game
         return currentTurn.id;
     }
 
-    public void SendWinnerNotification(string playerId, int[,] winnerBlocks)
+    private void SendWinnerNotification(string playerId, int[,] winnerBlocks)
     {
         Console.WriteLine($"Sending winner notification to player: {playerId} with winner blocks: {winnerBlocks}");
     }
 
-    public void SendDrawNotification()
+    private void SendDrawNotification()
     {
         Console.WriteLine("The game ended in a draw");
     }  
 
-    public BlockValues TypeToValue(PlayerType player)
+    private BlockValues TypeToValue(PlayerType player)
     {
         return player switch
         {
@@ -181,7 +169,7 @@ class Game
         };
     }
 
-    public bool IsEqual(BlockValues a, BlockValues b, BlockValues c)
+    private bool IsEqual(BlockValues a, BlockValues b, BlockValues c)
     {
         return a != BlockValues.Empty && a == b && b == c;
     }

@@ -3,7 +3,7 @@ namespace model.game;
 using model.common;
 using model.game.enums;
 
-public class Player : GenerateId
+public class Player
 {
     public string id {get; set;} = string.Empty;
     public string name {get; set;} = string.Empty;
@@ -13,7 +13,7 @@ public class Player : GenerateId
 
     public Player(string name, string avatar, PlayerType type)
     {
-        this.id = GenerateCode();
+        this.id = GenerateId.GenerateCode();
         this.name = name;
         this.avatar = avatar;
         this.type = type;
