@@ -4,10 +4,10 @@ namespace model.game;
 
 public class Game
 {
-    public BlockValues[,] table = new BlockValues[3,3];
-    public Player currentTurn;
-    public Player playerX;
-    public Player playerO;
+    private Types[,] table = new Types[3,3];
+    private Player currentTurn;
+    private Player playerX;
+    private Player playerO;
 
     public Game(Player playerX, Player playerO)
     {
@@ -26,19 +26,23 @@ public class Game
         {
             throw new Exception("Not your turn");
         }
+        
+        if (x < 0 || x > 2 || y < 0 || y > 2)
+        {
+            throw new Exception("Invalid position");
+        }
 
-        if (table[x,y] != BlockValues.Empty)
+        if (table[x,y] != Types.Empty)
         {
             throw new Exception("Block already occupied");
         }
 
-        BlockValues playerValue = TypeToValue(currentTurn.type);
-
-        this.table[x,y] = playerValue;
+        this.table[x,y] = currentTurn.type;
         SendTable();
         if (CheckWinner() || HasDraw())
         {
-            await Reset();
+            Reset();
+            await SetTimeOut();
             return;
         }
         ChangeTurn();
@@ -47,45 +51,63 @@ public class Game
 
     private bool CheckWinner()
     {
-        int [][][] winPatterns =
+        for (int i = 0; i < 3; i++)
         {
-            [[0,0], [0,1], [0,2]],
-            [[1,0], [1,1], [1,2]],
-            [[2,0], [2,1], [2,2]],
-
-            [[0,0], [1,0], [2,0]],
-            [[0,1], [1,1], [2,1]],
-            [[0,2], [1,2], [2,2]],
-
-            [[0,0], [1,1], [2,2]],
-            [[0,2], [1,1], [2,0]]
-        };
-
-        foreach (var pattern in winPatterns)
-        {
-            var blockPatternA = pattern[0];
-            var blockPatternB = pattern[1];
-            var blockPatternC = pattern[2];
-
-            if (IsEqual(
-                table[blockPatternA[0], blockPatternA[1]],
-                table[blockPatternB[0], blockPatternB[1]],
-                table[blockPatternC[0], blockPatternC[1]]
-            ))
+            if(IsEqual(this.table[i,0], this.table[i,1], this.table[i,2]))
             {
-                int[,] winnerBlocks =
+                int[,] winnerBlocks = new int[,]
                 {
-                    { blockPatternA[0], blockPatternA[1] },
-                    { blockPatternB[0], blockPatternB[1] },
-                    { blockPatternC[0], blockPatternC[1] }
+                    {i,0},
+                    {i,1},
+                    {i,2}
                 };
+                WinnerCount();
+                SendWinnerNotification(currentTurn.id, winnerBlocks);
+                return true;
+            };
 
+            if(IsEqual(this.table[0,i], this.table[1,i], this.table[2,i]))
+            {
+                int[,] winnerBlocks = new int[,]
+                {
+                    {0,i},
+                    {1,i},
+                    {2,i}
+                };
+                WinnerCount();
                 SendWinnerNotification(currentTurn.id, winnerBlocks);
                 return true;
             }
         }
+        if(IsEqual(this.table[0,0], this.table[1,1], this.table[2,2]))
+        {
+            int[,] winnerBlocks = new int[,]
+                {
+                    {0,0},
+                    {1,1},
+                    {2,2}
+                };
+                WinnerCount();
+                SendWinnerNotification(currentTurn.id, winnerBlocks);
+                return true;
+        }
+
+        if(IsEqual(this.table[0,2], this.table[1,1], this.table[2,0]))
+        {
+            int[,] winnerBlocks = new int[,]
+                {
+                    {0,2},
+                    {1,1},
+                    {2,0}
+                };
+                WinnerCount();
+                SendWinnerNotification(currentTurn.id, winnerBlocks);
+                return true;
+        }
         return false;
     }
+
+    
     
     private bool HasDraw()
     {
@@ -93,7 +115,7 @@ public class Game
         {
             for (int j = 0; j < 3; j++)
             {
-                if (this.table[i,j] == BlockValues.Empty)
+                if (this.table[i,j] == Types.Empty)
                 {
                     return false;
                     
@@ -114,27 +136,20 @@ public class Game
         this.currentTurn = this.playerX;
     }
 
-    private async Task Reset()
+    private void Reset()
     {
-        table = new BlockValues[3,3];
+        table = new Types[3,3];
         currentTurn = playerX;
         SendTable();
         SendCurrentTurn();
-        await SetTimeOut();
-
     }
-
+    
     private async Task SetTimeOut()
     {
-        Console.WriteLine("Game has been reset.");
-        for (int i = 10; i >= 0; i--)
-        {
-            Console.WriteLine(i);
-            await Task.Delay(1000);
-        }
+        await Task.Delay(1000);
     }
 
-    public BlockValues[,] SendTable()
+    public Types[,] SendTable()
     {
         return table;
     }
@@ -151,7 +166,7 @@ public class Game
 
     private void SendWinnerNotification(string playerId, int[,] winnerBlocks)
     {
-        Console.WriteLine($"Sending winner notification to player: {playerId} with winner blocks: {winnerBlocks}");
+        Console.WriteLine($"Sending winner notification to player: {playerId} with winner blocks: {winnerBlocks}. {playerId} has {currentTurn.wins} wins now");
     }
 
     private void SendDrawNotification()
@@ -159,18 +174,12 @@ public class Game
         Console.WriteLine("The game ended in a draw");
     }  
 
-    private BlockValues TypeToValue(PlayerType player)
+    private bool IsEqual(Types a, Types b, Types c)
     {
-        return player switch
-        {
-            PlayerType.X => BlockValues.X,
-            PlayerType.O => BlockValues.O,
-            _ => BlockValues.Empty,
-        };
+        return a != Types.Empty && a == b && b == c;
     }
-
-    private bool IsEqual(BlockValues a, BlockValues b, BlockValues c)
+    private void WinnerCount()
     {
-        return a != BlockValues.Empty && a == b && b == c;
+        currentTurn.wins++;
     }
 }

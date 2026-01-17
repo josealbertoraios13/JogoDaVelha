@@ -1,4 +1,4 @@
-using model.common;
+using System.Security.Cryptography;
 
 namespace model.game;
 
@@ -10,7 +10,17 @@ public class Room
 
     public Room(Player player)
     {
-        this.id = GenerateId.GenerateCode();
+        this.id = GenerateRoomId();
         this.Players.Add(player);
+    }
+
+    public static string GenerateRoomId(int length = 8)
+    {
+        const string chars = "ABCDEFGHIJKLMNOPQRSTUVXZ0123456789";
+        var bytes = new byte[length];
+
+        RandomNumberGenerator.Fill(bytes);
+
+        return new string(bytes.Select(b => chars[b % chars.Length]).ToArray());
     }
 }
