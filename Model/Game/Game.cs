@@ -8,6 +8,7 @@ public class Game
     private Player currentTurn;
     private Player playerX;
     private Player playerO;
+    private int draws = 0;
 
     public Game(Player playerX, Player playerO)
     {
@@ -60,7 +61,6 @@ public class Game
                     {i,1},
                     {i,2}
                 };
-                WinnerCount();
                 SendWinnerNotification(currentTurn.id, winnerBlocks);
                 return true;
             };
@@ -73,7 +73,6 @@ public class Game
                     {1,i},
                     {2,i}
                 };
-                WinnerCount();
                 SendWinnerNotification(currentTurn.id, winnerBlocks);
                 return true;
             }
@@ -86,7 +85,6 @@ public class Game
                     {1,1},
                     {2,2}
                 };
-                WinnerCount();
                 SendWinnerNotification(currentTurn.id, winnerBlocks);
                 return true;
         }
@@ -99,7 +97,6 @@ public class Game
                     {1,1},
                     {2,0}
                 };
-                WinnerCount();
                 SendWinnerNotification(currentTurn.id, winnerBlocks);
                 return true;
         }
@@ -142,12 +139,6 @@ public class Game
         currentTurn = playerX;
         SendTable();
         SendCurrentTurn();
-        SendResetMensage();
-    }
-
-    private void SendResetMensage()
-    {
-        Console.WriteLine("Game has been reseted");
     }
 
     public Types[,] SendTable()
@@ -167,20 +158,18 @@ public class Game
 
     private void SendWinnerNotification(string playerId, int[,] winnerBlocks)
     {
+        currentTurn.wins++;
         Console.WriteLine($"Sending winner notification to player: {playerId} with winner blocks: {winnerBlocks}. {playerId} has {currentTurn.wins} wins now");
     }
 
     private void SendDrawNotification()
     {
-        Console.WriteLine("The game ended in a draw");
+        draws++;
+        Console.WriteLine($"The game ended in a draw. Draws equals {draws}");
     }  
 
     private bool IsEqual(Types a, Types b, Types c)
     {
         return a != Types.Empty && a == b && b == c;
-    }
-    private void WinnerCount()
-    {
-        currentTurn.wins++;
     }
 }
