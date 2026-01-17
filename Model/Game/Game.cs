@@ -41,8 +41,7 @@ public class Game
         SendTable();
         if (CheckWinner() || HasDraw())
         {
-            Reset();
-            await SetTimeOut();
+            await Reset();
             return;
         }
         ChangeTurn();
@@ -136,17 +135,19 @@ public class Game
         this.currentTurn = this.playerX;
     }
 
-    private void Reset()
+    private async Task Reset()
     {
+        await Task.Delay(1000);
         table = new Types[3,3];
         currentTurn = playerX;
         SendTable();
         SendCurrentTurn();
+        SendResetMensage();
     }
-    
-    private async Task SetTimeOut()
+
+    private void SendResetMensage()
     {
-        await Task.Delay(1000);
+        Console.WriteLine("Game has been reseted");
     }
 
     public Types[,] SendTable()
