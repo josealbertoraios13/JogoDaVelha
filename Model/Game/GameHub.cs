@@ -17,5 +17,4 @@ public sealed class GameHub : Hub
     {
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, room);
     }
-
 }

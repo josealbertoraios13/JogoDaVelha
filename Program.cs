@@ -8,7 +8,7 @@ public class Program
 
         var app = builder.Build();
 
-        app.MapHub<GameHub>("/game");
+        app.MapHub<GameHub>(string.Empty);
 
         await app.RunAsync();
     }
