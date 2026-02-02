@@ -36,6 +36,8 @@ public sealed class GameHub : Hub
         Console.WriteLine($"✅ Cliente {Context.ConnectionId} entrou na sala '{room}'");
     }
 
+    
+
     public async Task LeaveRoom(string room)
     {
         Console.WriteLine($"🚪 LeaveRoom chamado - Sala: {room}, Cliente: {Context.ConnectionId}");
