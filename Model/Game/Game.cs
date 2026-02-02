@@ -103,8 +103,6 @@ public class Game
         return false;
     }
 
-    
-    
     private bool HasDraw()
     {
         for (int i = 0; i < 3; i++)
