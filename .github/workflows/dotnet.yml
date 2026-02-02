@@ -10,9 +10,8 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
-
-    runs-on: ubuntu-latest
+  test-build:
+    runs-on: self-hosted
 
     steps:
     - uses: actions/checkout@v4
