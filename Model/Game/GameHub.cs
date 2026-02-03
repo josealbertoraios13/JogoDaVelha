@@ -1,11 +1,16 @@
 using System;
 using Microsoft.AspNetCore.SignalR;
+using model.game;
+using model.game.enums;
+using model.requests;
+using model.responses;
 
 // Adicionei Logs para melhor rastreamento das ações dos clientes durante o desenvolvimento.
 // TODO: Remover logs antes da versão de produção
 
 public sealed class GameHub : Hub
-{
+{   
+    private static Dictionary<string, Room> activatedRooms = new();
     public override async Task OnConnectedAsync()
     {
         Console.WriteLine($"🔌 Cliente conectado: {Context.ConnectionId}");
@@ -22,18 +27,62 @@ public sealed class GameHub : Hub
         await base.OnDisconnectedAsync(exception);
     }
 
-    public async Task CreateRoom()
-    {
-        Console.WriteLine($"🎮 CreateRoom chamado por: {Context.ConnectionId}");
-        await Groups.AddToGroupAsync(Context.ConnectionId, "room");
-        Console.WriteLine($"✅ Sala criada e cliente {Context.ConnectionId} adicionado ao grupo 'room'");
+    public async Task<IResponse> CreateRoom(CreateResquest resquest) 
+    { 
+        var name = resquest.name; 
+        if (string.IsNullOrWhiteSpace(name)) 
+            throw new HubException("Name can't be null or empty"); 
+            
+        var avatar = resquest.avatar; 
+        if (string.IsNullOrWhiteSpace(avatar)) 
+            throw new HubException("Avatar can't be null or empty"); 
+            
+        var id = Context.ConnectionId; 
+        
+        var player = new Player(id, name, avatar); 
+        
+        player.type = Types.X; 
+        
+        var room = new Room(player); 
+
+        activatedRooms.Add(room.id, room);
+        
+        await Groups.AddToGroupAsync(Context.ConnectionId, room.id);    
+
+        return new RoomResponse() { room = room }; 
     }
 
-    public async Task JoinRoom(string room)
+    public async Task<IResponse> JoinRoom(JoinRequest request)
     {
-        Console.WriteLine($"🚪 JoinRoom chamado - Sala: {room}, Cliente: {Context.ConnectionId}");
-        await Groups.AddToGroupAsync(Context.ConnectionId, room);
-        Console.WriteLine($"✅ Cliente {Context.ConnectionId} entrou na sala '{room}'");
+        // Verificar sala cheia?
+
+        var idRoom = request.IdRoom;
+        if(string.IsNullOrWhiteSpace(idRoom))
+            throw new HubException("Id room can't be null or empty");
+
+        var name = request.name;
+        if(string.IsNullOrWhiteSpace(name))
+            throw new HubException("Name can't be null or empty");
+
+        var avatar = request.avatar;
+        if(string.IsNullOrWhiteSpace(avatar))
+            throw new HubException("Avatar can't be null or empty");
+
+        if(activatedRooms.TryGetValue(idRoom, out var room))
+        {
+            var id = Context.ConnectionId;
+            var player = new Player(id, name, avatar); 
+
+            player.type = Types.O; 
+
+            room.Players.Add(player);
+
+            await Groups.AddToGroupAsync(id, room.id);
+
+            return new RoomResponse() { room = room }; 
+        }
+
+        throw new HubException("This Room does not exist");
     }
 
     

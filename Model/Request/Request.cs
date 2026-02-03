@@ -7,7 +7,8 @@ public interface IRequest;
 
 public record CreateResquest : IRequest
 {
-    public Player? Player {get; init;}
+    public string name {get; init;} = string.Empty;
+    public string avatar {get; init;} = string.Empty;
 }
 
 public record JoinRequest : IRequest
