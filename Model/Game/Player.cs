@@ -10,11 +10,10 @@ public class Player
     public Types type {get; set;}
     public int wins {get; set;} = 0;
 
-    public Player(string id, string name, string avatar, Types type)
+    public Player(string id, string name, string avatar)
     {
         this.id = id;
         this.name = name;
         this.avatar = avatar;
-        this.type = type;
     }
 }

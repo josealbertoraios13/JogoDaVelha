@@ -1,35 +1,27 @@
-public class Program
-{
-    public static async Task Main(string[] args)
-    {
-        
-        var builder = WebApplication.CreateBuilder(args);
 
-        builder.Services.AddCors(options =>
-                {
-                    options.AddDefaultPolicy(policy =>
-                    {
-                        policy.WithOrigins(
-                                  "https://jogo.kaworii.com.br",
-                                  "http://jogo.kaworii.com.br",
-                                  "http://localhost:5173"
-                              )
-                              .AllowAnyHeader()
-                              .AllowAnyMethod()
-                              .AllowCredentials();
-                    });
-                });
+var builder = WebApplication.CreateBuilder(args);
 
-        builder.Services.AddSignalR();
+builder.Services.AddCors(options =>
+        {
+            options.AddDefaultPolicy(policy =>
+            {
+                policy.WithOrigins(
+                            "https://jogo.kaworii.com.br",
+                            "http://jogo.kaworii.com.br",
+                            "http://localhost:5173"
+                        )
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials();
+            });
+        });
 
-        var app = builder.Build();
+builder.Services.AddSignalR();
 
-        app.UseCors();
+var app = builder.Build();
 
-        app.MapHub<GameHub>("/GameHub");
+app.UseCors();
 
-        await app.RunAsync();
-    }
-}
+app.MapHub<GameHub>("/GameHub");
 
-pub
+await app.RunAsync();
