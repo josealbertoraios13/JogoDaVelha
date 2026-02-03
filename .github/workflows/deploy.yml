@@ -1,0 +1,47 @@
+name: 🚀 Deploy API Jogo da Velha
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: 📂 Checkout do Código
+        uses: actions/checkout@v4
+      
+      - name: 🛠️ Setup .NET (SDK para Build)
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: 📦 Restaurar e Publicar
+        run: |
+          # O comando publish cria uma pasta 'out' com apenas o necessário para rodar
+          dotnet publish JogoDaVelha.csproj -c Release -o ./publish_output
+
+      - name: 🚚 Deploy via RSync
+        env:
+          VM_IP: ${{ secrets.VM_IP }}
+          VM_USER: ${{ secrets.VM_USER }}
+        run: |
+          # Enviamos apenas o conteúdo da pasta de saída
+          # --delete garante que arquivos antigos sumam da VM
+          rsync -rlpzD -e "ssh -o StrictHostKeyChecking=no" \
+            --no-owner --no-group --no-t \
+            --delete \
+            ./publish_output/ $VM_USER@$VM_IP:/var/www/jdv/api/
+
+      - name: 🔄 Restart do Service
+        env:
+          VM_IP: ${{ secrets.VM_IP }}
+          VM_USER: ${{ secrets.VM_USER }}
+        run: |
+          # Comando remoto para avisar o Linux que a API atualizou
+          ssh -o StrictHostKeyChecking=no $VM_USER@$VM_IP "sudo /usr/bin/systemctl restart jdv-api.service"
+
+      - name: 🧹 Cleanup Runner
+        if: always()
+        run: rm -rf *
