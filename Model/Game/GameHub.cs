@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Text.Json;
 using Microsoft.AspNetCore.SignalR;
 using model.game;
@@ -11,7 +12,7 @@ using model.responses;
 
 public sealed class GameHub : Hub
 {   
-    private static Dictionary<string, Room> activatedRooms = new();
+    private static ConcurrentDictionary<string, Room> activatedRooms = new();
     public override async Task OnConnectedAsync()
     {
         Console.WriteLine($"🔌 Cliente conectado: {Context.ConnectionId}");
@@ -46,14 +47,14 @@ public sealed class GameHub : Hub
         
         var room = new Room(player); 
 
-        activatedRooms.Add(room.id, room);
+        activatedRooms.TryAdd(room.id, room);
         
         await Groups.AddToGroupAsync(Context.ConnectionId, room.id);    
 
         return new RoomResponse() { room = room }; 
     }
 
-    public async Task<IResponse> JoinRoom(JoinRequest request)
+    public async Task JoinRoom(JoinRequest request)
     {
         var idRoom = request.IdRoom;
         if(string.IsNullOrWhiteSpace(idRoom))
@@ -81,7 +82,7 @@ public sealed class GameHub : Hub
 
             await Groups.AddToGroupAsync(id, room.id);
 
-            await Clients.Group(id).SendAsync("PlayerJoined", new RoomResponse { room = room });
+            await Clients.Group(room.id).SendAsync("PlayerJoined", new RoomResponse { room = room });
         }
 
         throw new HubException("This Room does not exist");
@@ -89,9 +90,7 @@ public sealed class GameHub : Hub
 
     public async Task LeaveRoom(string room)
     {
-        Console.WriteLine($"🚪 LeaveRoom chamado - Sala: {room}, Cliente: {Context.ConnectionId}");
-        await Groups.RemoveFromGroupAsync(Context.ConnectionId, room);
-        Console.WriteLine($"✅ Cliente {Context.ConnectionId} saiu da sala '{room}'");
+        // Próximo para ser implementado
     }
 
     public Task MakeMove(int x, int y)
