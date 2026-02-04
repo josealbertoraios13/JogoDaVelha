@@ -39,13 +39,18 @@ public sealed class GameHub : Hub
         if (string.IsNullOrWhiteSpace(avatar)) 
             throw new HubException("Avatar can't be null or empty"); 
             
-        var id = Context.ConnectionId; 
+        var idConnection = Context.ConnectionId; 
         
-        var player = new Player(id, name, avatar); 
+        var player = new Player(idConnection, name, avatar); 
         
         player.type = Types.X; 
         
-        var room = new Room(id, player); 
+        var room = new Room()
+        {
+            id = Room.GenerateRoomId()
+        };
+
+        room.players[player.id] = player;
 
         activatedRooms.TryAdd(room.id, room);
         
@@ -74,29 +79,26 @@ public sealed class GameHub : Hub
         if(room == null)
             throw new HubException("Room is null");
 
-        var id = Context.ConnectionId;
+        var idConnection = Context.ConnectionId;
         Player player;
         
         lock (room)
         {
-            if(room.Players.Count >= 2)
+            if(room.players.Count >= 2)
                 throw new HubException("This room is full");
 
-            if(room.Players.ContainsKey(id))
+            if(room.players.ContainsKey(idConnection))
                 throw new HubException("This player is already in the room");
 
-            var assingnedType = room.Players.Count == 0 ? Types.X : Types.O;
-
-            player = new Player(id, name, avatar)
+            player = new Player(idConnection, name, avatar)
             {
-                type = assingnedType                
+                type = Types.O                
             };
 
-            if(!room.Players.TryAdd(id, player))
-                throw new Exception("Failed to join room");
+            room.players[idConnection] = player;
         }
 
-        await Groups.AddToGroupAsync(id, room.id);
+        await Groups.AddToGroupAsync(idConnection, room.id);
 
         await Clients.Group(room.id).SendAsync("PlayerJoined", new PlayerResponse() {player = player});
 
