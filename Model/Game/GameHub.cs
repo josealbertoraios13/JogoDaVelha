@@ -12,7 +12,7 @@ using model.responses;
 
 public sealed class GameHub : Hub
 {   
-    private static ConcurrentDictionary<string, Room> activatedRooms = new();
+    private static Dictionary<string, Room> activatedRooms = new();
     public override async Task OnConnectedAsync()
     {
         Console.WriteLine($"🔌 Cliente conectado: {Context.ConnectionId}");
@@ -47,14 +47,14 @@ public sealed class GameHub : Hub
         
         var room = new Room(player); 
 
-        activatedRooms.TryAdd(room.id, room);
+        activatedRooms.Add(room.id, room);
         
         await Groups.AddToGroupAsync(Context.ConnectionId, room.id);    
 
         return new RoomResponse() { room = room }; 
     }
 
-    public async Task JoinRoom(JoinRequest request)
+    public async Task<IResponse> JoinRoom(JoinRequest request)
     {
         var idRoom = request.IdRoom;
         if(string.IsNullOrWhiteSpace(idRoom))
@@ -83,6 +83,8 @@ public sealed class GameHub : Hub
             await Groups.AddToGroupAsync(id, room.id);
 
             await Clients.Group(room.id).SendAsync("PlayerJoined", new RoomResponse { room = room });
+
+            return new RoomResponse() { room = room }; 
         }
 
         throw new HubException("This Room does not exist");
