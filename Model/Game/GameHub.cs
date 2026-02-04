@@ -12,7 +12,7 @@ using model.responses;
 
 public sealed class GameHub : Hub
 {   
-    private static Dictionary<string, Room> activatedRooms = new();
+    private static ConcurrentDictionary<string, Room> activatedRooms = new();
     public override async Task OnConnectedAsync()
     {
         Console.WriteLine($"🔌 Cliente conectado: {Context.ConnectionId}");
@@ -45,9 +45,9 @@ public sealed class GameHub : Hub
         
         player.type = Types.X; 
         
-        var room = new Room(player); 
+        var room = new Room(id, player); 
 
-        activatedRooms.Add(room.id, room);
+        activatedRooms.TryAdd(room.id, room);
         
         await Groups.AddToGroupAsync(Context.ConnectionId, room.id);    
 
@@ -68,26 +68,38 @@ public sealed class GameHub : Hub
         if(string.IsNullOrWhiteSpace(avatar))
             throw new HubException("Avatar can't be null or empty");
 
-        if(activatedRooms.TryGetValue(idRoom, out var room))
+        if(!activatedRooms.TryGetValue(idRoom, out var room))
+            throw new HubException("This Room does not exist");
+
+        if(room == null)
+            throw new HubException("Room is null");
+
+        var id = Context.ConnectionId;
+        Player player;
+        lock (room)
         {
             if(room.Players.Count >= 2)
                 throw new HubException("This room is full");
 
-            var id = Context.ConnectionId;
-            var player = new Player(id, name, avatar); 
+            if(room.Players.ContainsKey(id))
+                throw new HubException("This player is already in the room");
 
-            player.type = Types.O; 
+            var assingnedType = room.Players.Count == 0 ? Types.X : Types.O;
 
-            room.Players.Add(player);
+            player = new Player(id, name, avatar)
+            {
+                type = assingnedType                
+            };
 
-            await Groups.AddToGroupAsync(id, room.id);
-
-            await Clients.Group(room.id).SendAsync("PlayerJoined", new RoomResponse { room = room });
-
-            return new RoomResponse() { room = room }; 
+            if(room.Players.TryAdd(id, player))
+                throw new Exception("Failed to join room");
         }
 
-        throw new HubException("This Room does not exist");
+        await Groups.AddToGroupAsync(id, room.id);
+
+        await Clients.Group(room.id).SendAsync("PlayerJoined", new PlayerResponse() {player = player});
+
+        return new RoomResponse() { room = room }; 
     }
 
     public async Task LeaveRoom(string room)
