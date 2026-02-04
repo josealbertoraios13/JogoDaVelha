@@ -76,6 +76,7 @@ public sealed class GameHub : Hub
 
         var id = Context.ConnectionId;
         Player player;
+        
         lock (room)
         {
             if(room.Players.Count >= 2)
@@ -91,7 +92,7 @@ public sealed class GameHub : Hub
                 type = assingnedType                
             };
 
-            if(room.Players.TryAdd(id, player))
+            if(!room.Players.TryAdd(id, player))
                 throw new Exception("Failed to join room");
         }
 
@@ -101,10 +102,11 @@ public sealed class GameHub : Hub
 
         return new RoomResponse() { room = room }; 
     }
-
+    
     public async Task LeaveRoom(string room)
     {
         // Próximo para ser implementado
+        await Task.Yield();
     }
 
     public Task MakeMove(int x, int y)
