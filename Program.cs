@@ -1,6 +1,8 @@
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddSignalR();
+
 builder.Services.AddCors(options =>
         {
             options.AddDefaultPolicy(policy =>
@@ -16,9 +18,9 @@ builder.Services.AddCors(options =>
             });
         });
 
-builder.Services.AddSignalR();
-
 var app = builder.Build();
+
+app.UseRouting();
 
 app.UseCors();
 
