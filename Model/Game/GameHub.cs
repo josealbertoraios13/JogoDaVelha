@@ -1,4 +1,5 @@
 using System;
+using System.Text.Json;
 using Microsoft.AspNetCore.SignalR;
 using model.game;
 using model.game.enums;
@@ -54,8 +55,6 @@ public sealed class GameHub : Hub
 
     public async Task<IResponse> JoinRoom(JoinRequest request)
     {
-        // Verificar sala cheia?
-
         var idRoom = request.IdRoom;
         if(string.IsNullOrWhiteSpace(idRoom))
             throw new HubException("Id room can't be null or empty");
@@ -70,6 +69,9 @@ public sealed class GameHub : Hub
 
         if(activatedRooms.TryGetValue(idRoom, out var room))
         {
+            if(room.Players.Count >= 2)
+                throw new HubException("This room is full");
+
             var id = Context.ConnectionId;
             var player = new Player(id, name, avatar); 
 
@@ -79,13 +81,11 @@ public sealed class GameHub : Hub
 
             await Groups.AddToGroupAsync(id, room.id);
 
-            return new RoomResponse() { room = room }; 
+            await Clients.Group(id).SendAsync("PlayerJoined", new RoomResponse { room = room });
         }
 
         throw new HubException("This Room does not exist");
     }
-
-    
 
     public async Task LeaveRoom(string room)
     {
@@ -100,7 +100,6 @@ public sealed class GameHub : Hub
         // Lógica do jogo será implementada aqui
         Console.WriteLine($"✅ Jogada registrada na posição ({x}, {y})");
         return Task.CompletedTask;
-        
     }
 
     public Task ResetGame()
