@@ -31,6 +31,9 @@ public sealed class GameHub : Hub
 
     public async Task<IResponse> CreateRoom(CreateResquest resquest) 
     { 
+        var idConnection = Context.ConnectionId; 
+        Console.WriteLine($"CreateRoom event called by connection ID: {idConnection}");
+
         var name = resquest.name; 
         if (string.IsNullOrWhiteSpace(name)) 
             throw new HubException("Name can't be null or empty"); 
@@ -39,7 +42,6 @@ public sealed class GameHub : Hub
         if (string.IsNullOrWhiteSpace(avatar)) 
             throw new HubException("Avatar can't be null or empty"); 
             
-        var idConnection = Context.ConnectionId; 
         
         var player = new Player(idConnection, name, avatar); 
         
@@ -54,13 +56,18 @@ public sealed class GameHub : Hub
 
         activatedRooms.TryAdd(room.id, room);
         
-        await Groups.AddToGroupAsync(Context.ConnectionId, room.id);    
+        await Groups.AddToGroupAsync(Context.ConnectionId, room.id); 
+
+        Console.WriteLine($"Sending event results successfully. Connection ID: {idConnection}");   
 
         return new RoomResponse() { room = room }; 
     }
 
     public async Task<IResponse> JoinRoom(JoinRequest request)
     {
+        var idConnection = Context.ConnectionId; 
+        Console.WriteLine($"JoinRoom event called by connection ID: {idConnection}");
+
         var idRoom = request.IdRoom;
         if(string.IsNullOrWhiteSpace(idRoom))
             throw new HubException("Id room can't be null or empty");
@@ -76,10 +83,6 @@ public sealed class GameHub : Hub
         if(!activatedRooms.TryGetValue(idRoom, out var room))
             throw new HubException("This Room does not exist");
 
-        if(room == null)
-            throw new HubException("Room is null");
-
-        var idConnection = Context.ConnectionId;
         Player player;
         
         lock (room)
@@ -102,13 +105,42 @@ public sealed class GameHub : Hub
 
         await Clients.Group(room.id).SendAsync("PlayerJoined", new PlayerResponse() {player = player});
 
+        Console.WriteLine($"Sending event results successfully. Connection ID: {idConnection}"); 
+
         return new RoomResponse() { room = room }; 
     }
     
-    public async Task LeaveRoom(string room)
+    public async Task<IResponse> LeaveRoom(string idRoom)
     {
-        // Próximo para ser implementado
-        await Task.Yield();
+        var idConnection = Context.ConnectionId; 
+        Console.WriteLine($"JoinRoom event called by connection ID: {idConnection}");
+
+        if(string.IsNullOrEmpty(idRoom))
+            throw new HubException("idRoom can't be null");
+
+        if(!activatedRooms.TryGetValue(idRoom, out var room))
+            throw new HubException("This room does not exist");
+
+        Player? player;
+        lock(room)
+        {
+            if(!room.players.ContainsKey(idConnection))
+                throw new HubException("This player is not in this room");
+
+            room.players.Remove(idConnection, out player);
+
+            if(room.players.Count == 0)
+                if(activatedRooms.TryRemove(idRoom, out var removedRoom))
+                    Console.WriteLine($"this {removedRoom} was removed"); // Se Quiser posso enviar isso, mas acredito ser desnecessário
+        }
+
+        await Groups.RemoveFromGroupAsync(idConnection, room.id);
+
+        await Clients.Group(room.id).SendAsync("PlayerJoined", new PlayerResponse() {player = player});
+
+        Console.WriteLine($"Sending event results successfully. Connection ID: {idConnection}"); 
+
+        return new RoomResponse() { room = room }; 
     }
 
     public Task MakeMove(int x, int y)
