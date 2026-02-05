@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Security.Cryptography;
 
 namespace model.game;
@@ -6,13 +7,7 @@ public class Room
 {
     public string id {get; init;} = string.Empty;
 
-    public List<Player> Players {get; set;} = new ();
-
-    public Room(Player player)
-    {
-        this.id = GenerateRoomId();
-        this.Players.Add(player);
-    }
+    public Dictionary<string, Player> players {get; set;} = new ();
 
     public static string GenerateRoomId(int length = 8)
     {
