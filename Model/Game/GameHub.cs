@@ -76,9 +76,6 @@ public sealed class GameHub : Hub
         if(!activatedRooms.TryGetValue(idRoom, out var room))
             throw new HubException("This Room does not exist");
 
-        if(room == null)
-            throw new HubException("Room is null");
-
         var idConnection = Context.ConnectionId;
         Player player;
         
@@ -105,10 +102,33 @@ public sealed class GameHub : Hub
         return new RoomResponse() { room = room }; 
     }
     
-    public async Task LeaveRoom(string room)
+    public async Task<IResponse> LeaveRoom(string idRoom)
     {
-        // Próximo para ser implementado
-        await Task.Yield();
+        if(string.IsNullOrEmpty(idRoom))
+            throw new HubException("idRoom can't be null");
+
+        if(!activatedRooms.TryGetValue(idRoom, out var room))
+            throw new HubException("This room does not exist");
+
+        var idConnection = Context.ConnectionId;
+        Player? player;
+        lock(room)
+        {
+            if(!room.players.ContainsKey(idConnection))
+                throw new HubException("This player is not in this room");
+
+            room.players.Remove(idConnection, out player);
+
+            if(room.players.Count == 0)
+                if(activatedRooms.TryRemove(idRoom, out var removedRoom))
+                    Console.WriteLine($"this {removedRoom} was removed"); // Se Quiser posso enviar isso, mas acredito ser desnecessário
+        }
+
+        await Groups.RemoveFromGroupAsync(idConnection, room.id);
+
+        await Clients.Group(room.id).SendAsync("PlayerJoined", new PlayerResponse() {player = player});
+
+        return new RoomResponse() { room = room }; 
     }
 
     public Task MakeMove(int x, int y)
