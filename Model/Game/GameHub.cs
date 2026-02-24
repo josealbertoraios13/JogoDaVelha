@@ -136,7 +136,7 @@ public sealed class GameHub : Hub
 
         await Groups.RemoveFromGroupAsync(idConnection, room.id);
 
-        await Clients.Group(room.id).SendAsync("PlayerJoined", new PlayerResponse() {player = player});
+        await Clients.Group(room.id).SendAsync("PlayerLeft", new PlayerResponse() {player = player});
 
         Console.WriteLine($"Sending event results successfully. Connection ID: {idConnection}"); 
 
