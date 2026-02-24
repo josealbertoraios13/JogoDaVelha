@@ -1,10 +1,11 @@
 using model.game.enums;
+using model.responses;
 
 namespace model.game;
 
 public class Game
 {
-    private Types[,] table = new Types[3,3];
+    private string[,] table = new string[3,3];
     private Player currentTurn;
     private Player playerX;
     private Player playerO;
@@ -21,7 +22,7 @@ public class Game
         SendCurrentTurn();
     }
 
-    public async Task MakeMove(string playerId, int x, int y)
+    public async Task<IResponse> MakeMove(string playerId, int x, int y)
     {
         if (currentTurn.id != playerId)
         {
@@ -33,20 +34,23 @@ public class Game
             throw new Exception("Invalid position");
         }
 
-        if (table[x,y] != Types.Empty)
+        if (table[x,y] != null)
         {
             throw new Exception("Block already occupied");
         }
 
         this.table[x,y] = currentTurn.type;
+
         SendTable();
         if (CheckWinner() || HasDraw())
         {
             await Reset();
-            return;
         }
-        ChangeTurn();
-        SendCurrentTurn();
+        else
+        {
+            ChangeTurn();
+            SendCurrentTurn();
+        }
     }
 
     private bool CheckWinner()
@@ -109,7 +113,7 @@ public class Game
         {
             for (int j = 0; j < 3; j++)
             {
-                if (this.table[i,j] == Types.Empty)
+                if (this.table[i,j] == null)
                 {
                     return false;
                     
@@ -133,13 +137,13 @@ public class Game
     private async Task Reset()
     {
         await Task.Delay(1000);
-        table = new Types[3,3];
+        table = new string[3,3];
         currentTurn = playerX;
         SendTable();
         SendCurrentTurn();
     }
 
-    public Types[,] SendTable()
+    public string[,] SendTable()
     {
         return table;
     }
@@ -166,8 +170,8 @@ public class Game
         Console.WriteLine($"The game ended in a draw. Draws equals {draws}");
     }  
 
-    private bool IsEqual(Types a, Types b, Types c)
+    private bool IsEqual(string a, string b, string c)
     {
-        return a != Types.Empty && a == b && b == c;
+        return a != null && a == b && b == c;
     }
 }

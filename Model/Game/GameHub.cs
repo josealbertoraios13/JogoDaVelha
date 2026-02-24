@@ -45,14 +45,12 @@ public sealed class GameHub : Hub
         
         var player = new Player(idConnection, name, avatar); 
         
-        player.type = Types.X; 
-        
         var room = new Room()
         {
             id = Room.GenerateRoomId()
         };
 
-        room.players[player.id] = player;
+        room.players.Add(player);
 
         activatedRooms.TryAdd(room.id, room);
         
@@ -83,22 +81,21 @@ public sealed class GameHub : Hub
         if(!activatedRooms.TryGetValue(idRoom, out var room))
             throw new HubException("This Room does not exist");
 
-        Player player;
-        
+        Player ?player;
         lock (room)
         {
             if(room.players.Count >= 2)
                 throw new HubException("This room is full");
 
-            if(room.players.ContainsKey(idConnection))
+            player = room.players.FirstOrDefault(p => p.id == idConnection);
+            if(player != null)
                 throw new HubException("This player is already in the room");
 
-            player = new Player(idConnection, name, avatar)
-            {
-                type = Types.O                
-            };
+            player = new Player(idConnection, name, avatar);
 
-            room.players[idConnection] = player;
+            room.players.Add(player);
+
+            room.Update();
         }
 
         await Groups.AddToGroupAsync(idConnection, room.id);
@@ -124,10 +121,11 @@ public sealed class GameHub : Hub
         Player? player;
         lock(room)
         {
-            if(!room.players.ContainsKey(idConnection))
+            player = room.players.FirstOrDefault(p => p.id == idConnection);
+            if(player == null)
                 throw new HubException("This player is not in this room");
 
-            room.players.Remove(idConnection, out player);
+            room.players.Remove(player);
 
             if(room.players.Count == 0)
                 if(activatedRooms.TryRemove(idRoom, out var removedRoom))
@@ -143,12 +141,38 @@ public sealed class GameHub : Hub
         return new RoomResponse() { room = room }; 
     }
 
-    public Task MakeMove(int x, int y)
+    public Task MakeMove(string idRoom)
     {
-        Console.WriteLine($"🎯 MakeMove chamado - Posição: ({x}, {y}), Cliente: {Context.ConnectionId}");
-        // Lógica do jogo será implementada aqui
-        Console.WriteLine($"✅ Jogada registrada na posição ({x}, {y})");
+        var idConnection = Context.ConnectionId; 
+        Console.WriteLine($"JoinRoom event called by connection ID: {idConnection}");
+
+        if(!activatedRooms.TryGetValue(idRoom, out var room))
+            throw new HubException("This room does not exist");
+
+        lock (room)
+        {
+            room.game?.MakeMove(idConnection, 2,2);    
+        }
+
         return Task.CompletedTask;
+    }
+
+    public async Task<IResponse> Message(model.requests.Message request)
+    {
+        var message = request.message;
+        if(string.IsNullOrEmpty(message))
+            throw new HubException("Message is null");
+
+        var response = new model.responses.Message()
+        {
+            playerID = Context.ConnectionId,
+            message = message,
+            createdAt = request.createdAt
+        };
+
+        //await Clients.Group().SendAsync
+
+        return response;
     }
 
     public Task ResetGame()
