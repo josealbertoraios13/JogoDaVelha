@@ -141,20 +141,34 @@ public sealed class GameHub : Hub
         return new RoomResponse() { room = room }; 
     }
 
-    public Task MakeMove(string idRoom)
+    public async Task<IResponse> MakeMove(MakeMoveRequest request)
     {
         var idConnection = Context.ConnectionId; 
         Console.WriteLine($"JoinRoom event called by connection ID: {idConnection}");
 
+        var idRoom = request.IdRoom;
+        if(string.IsNullOrEmpty(idRoom))
+            throw new HubException("idRoom can't be null");
+
         if(!activatedRooms.TryGetValue(idRoom, out var room))
             throw new HubException("This room does not exist");
 
+        var block =  request.Block;
+
+        Game ?game;
         lock (room)
         {
-            room.game?.MakeMove(idConnection, 2,2);    
+            game = room.game;
         }
 
-        return Task.CompletedTask;
+        if(game == null)
+            throw new HubException("Game not started");
+
+        var response = await game.MakeMove(idConnection, block.x, block.y);
+
+        await Clients.Group(room.id).SendAsync("MakedMove", response);
+
+        return response;
     }
 
     public async Task<IResponse> Message(model.requests.Message request)

@@ -25,11 +25,10 @@ public record LeaveRequest : IRequest
     public Player? Player {get; init;}
 }
 
-public record MoveRequest : IRequest
+public record MakeMoveRequest : IRequest
 {
     public Block Block {get; init;} 
     public string IdRoom {get; init;} = string.Empty;
-    public Player? Player {get; init;}
 }
 
 public partial record Message : IResponse,  IRequest

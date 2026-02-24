@@ -16,7 +16,7 @@ public record PlayerResponse : IResponse
     public Player? player {get; init;}
 }
 
-public record MakeMove : IResponse
+public record MakeMoveResponse : IResponse
 {
     public string [,] ?table {get; init;}
 }
