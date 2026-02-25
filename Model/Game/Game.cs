@@ -6,7 +6,7 @@ public class Game
     private Player currentTurn;
     private Player playerX;
     private Player playerO;
-    private int draws = 0;
+    private int draws;
 
     public Game(Player playerX, Player playerO)
     {
@@ -147,14 +147,16 @@ public class Game
         return tableResult;
     }
 
-    public string SendPlayer(Player player)
+    public void SendPlayer(Player player)
     {
-        return player.id;
+        
+        //playerId = player.id,
+        //playerType = player.type
     }
 
-    public string SendCurrentTurn()
+    public void SendCurrentTurn()
     {
-        return currentTurn.id;
+        //playerTurnId = currentTurn.id;
     }
 
     public int SendDraw(bool draw)
