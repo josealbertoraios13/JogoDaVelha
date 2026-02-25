@@ -1,6 +1,3 @@
-using model.game.enums;
-using model.responses;
-
 namespace model.game;
 
 public class Game
@@ -16,13 +13,9 @@ public class Game
         this.playerX = playerX;
         this.playerO = playerO;
         currentTurn = playerX;
-        SendTable();
-        SendPlayer(playerX);
-        SendPlayer(playerO);
-        SendCurrentTurn();
     }
 
-    public async Task<IResponse> MakeMove(string playerId, int x, int y)
+    public GameResult MakeMove(string playerId, int x, int y)
     {
         if (currentTurn.id != playerId)
         {
@@ -39,21 +32,19 @@ public class Game
             throw new Exception("Block already occupied");
         }
 
-        this.table[x,y] = currentTurn.type;
+        table[x,y] = currentTurn.type;
 
-        SendTable();
-        if (CheckWinner() || HasDraw())
+        if (CheckWinner())
         {
-            await Reset();
+            return new GameResult
+            {
+                
+            };
         }
-        else
-        {
-            ChangeTurn();
-            SendCurrentTurn();
-        }
+        ChangeTurn();
     }
 
-    private bool CheckWinner()
+    private int[,]? CheckWinner()
     {
         for (int i = 0; i < 3; i++)
         {
@@ -65,8 +56,6 @@ public class Game
                     {i,1},
                     {i,2}
                 };
-                SendWinnerNotification(currentTurn.id, winnerBlocks);
-                return true;
             };
 
             if(IsEqual(this.table[0,i], this.table[1,i], this.table[2,i]))
@@ -77,7 +66,6 @@ public class Game
                     {1,i},
                     {2,i}
                 };
-                SendWinnerNotification(currentTurn.id, winnerBlocks);
                 return true;
             }
         }
@@ -89,7 +77,6 @@ public class Game
                     {1,1},
                     {2,2}
                 };
-                SendWinnerNotification(currentTurn.id, winnerBlocks);
                 return true;
         }
 
@@ -101,7 +88,6 @@ public class Game
                     {1,1},
                     {2,0}
                 };
-                SendWinnerNotification(currentTurn.id, winnerBlocks);
                 return true;
         }
         return false;
@@ -120,18 +106,17 @@ public class Game
                 }
             }
         }
-        SendDrawNotification();
         return true;
     }
 
     private void ChangeTurn()
     {
-        if (this.currentTurn == this.playerX)
+        if (currentTurn == playerX)
         {
-            this.currentTurn = this.playerO;
+            currentTurn = playerO;
             return;
         }
-        this.currentTurn = this.playerX;
+        currentTurn = playerX;
     }
 
     private async Task Reset()
@@ -139,13 +124,27 @@ public class Game
         await Task.Delay(1000);
         table = new string[3,3];
         currentTurn = playerX;
-        SendTable();
+        TableConvert();
         SendCurrentTurn();
     }
 
-    public string[,] SendTable()
+    public string?[][] TableConvert()
     {
-        return table;
+        int rows = table.GetLength(0);
+        int cols = table.GetLength(1);
+
+        var tableResult = new string?[rows][];
+
+        for (int i = 0; i < rows; i++)
+        {
+            tableResult[i] = new string?[cols];
+
+            for (int j = 0; j < cols; j++)
+            {
+                tableResult[i][j] = table[i, j];
+            }
+        }
+        return tableResult;
     }
 
     public string SendPlayer(Player player)
@@ -158,20 +157,26 @@ public class Game
         return currentTurn.id;
     }
 
-    private void SendWinnerNotification(string playerId, int[,] winnerBlocks)
+    public int SendDraw(bool draw)
     {
-        currentTurn.wins++;
-        Console.WriteLine($"Sending winner notification to player: {playerId} with winner blocks: {winnerBlocks}. {playerId} has {currentTurn.wins} wins now");
+        if (draw)
+        {
+            return draws++;
+        }
+        return draws;
     }
-
-    private void SendDrawNotification()
-    {
-        draws++;
-        Console.WriteLine($"The game ended in a draw. Draws equals {draws}");
-    }  
 
     private bool IsEqual(string a, string b, string c)
     {
         return a != null && a == b && b == c;
+    }
+
+    public class GameResult()
+    {
+        public bool isDraw {get; set; }
+        public string? winner {get; set; }
+        public string? [][] table {get; set; } = default!;
+        public string? [][] winnerMoves {get; set; } = default!;
+        public string currentTurnId { get; set; } = string.Empty;
     }
 }

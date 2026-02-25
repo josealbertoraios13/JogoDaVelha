@@ -1,5 +1,7 @@
 using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
+using model.responses;
 
 namespace model.game;
 
@@ -13,6 +15,17 @@ public class Room
     {
         TypeDeclare();
         GameStart();
+    }
+
+
+    public static string GenerateRoomId(int length = 8)
+    {
+        const string chars = "ABCDEFGHIJKLMNOPQRSTUVXZ0123456789";
+        var bytes = new byte[length];
+
+        RandomNumberGenerator.Fill(bytes);
+
+        return new string(bytes.Select(b => chars[b % chars.Length]).ToArray());
     }
 
     public void TypeDeclare()
@@ -34,13 +47,43 @@ public class Room
             game = new(players[0], players[1]);
     }
 
-    public static string GenerateRoomId(int length = 8)
+    public async Task<IResponse> GameResponse(string playerID, int x, int y)
     {
-        const string chars = "ABCDEFGHIJKLMNOPQRSTUVXZ0123456789";
-        var bytes = new byte[length];
+        string?[][] table;
+        bool draw = false;
+        if(game.MakeMove(playerID, x, y))
+        {
+            draw = true;
+            int draws = game.SendDraw(draw);
+            return new WinnerResponse
+                {
+                    winner = null,
+                    winnerMoves = null,
+                    isDrawEvent = true,
+                    draws = draws,
+                    players = this.players
+                };
+        }
+        else
+        {
+            if (playerID == game.SendCurrentTurn())
+            {
+                int draws = game.SendDraw(draw);
+                return new WinnerResponse
+                {
+                    winner = playerID,
+                    winnerMoves = table,
+                    isDrawEvent = false,
+                    draws = draws,
+                    players = this.players
 
-        RandomNumberGenerator.Fill(bytes);
 
-        return new string(bytes.Select(b => chars[b % chars.Length]).ToArray());
+                };
+            }
+            else
+            {
+                
+            }
+        }
     }
 }

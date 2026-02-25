@@ -18,7 +18,19 @@ public record PlayerResponse : IResponse
 
 public record MakeMoveResponse : IResponse
 {
-    public string [,] ?table {get; init;}
+    public string currentTurn {get; init;} = string.Empty;
+    public string?[][] ?table {get; init;}
+
+}
+
+public record WinnerResponse : IResponse
+{
+    public string winner {get; init;} = string.Empty;
+    public string?[][] ?winnerMoves {get; init;}
+    public bool isDrawEvent {get; init;}
+    public int draws {get; init;}
+    public List<Player> players {get; init;} = new ();
+
 }
 
 public partial record Message : IResponse,  IRequest

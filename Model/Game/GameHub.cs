@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Text.Json;
 using Microsoft.AspNetCore.SignalR;
 using model.game;
-using model.game.enums;
 using model.requests;
 using model.responses;
 
@@ -164,7 +163,7 @@ public sealed class GameHub : Hub
         if(game == null)
             throw new HubException("Game not started");
 
-        var response = await game.MakeMove(idConnection, block.x, block.y);
+        var response = await room.GameResponse(idConnection, x, y); //Poderia iniciar no Room.GameResponse?
 
         await Clients.Group(room.id).SendAsync("MakedMove", response);
 
