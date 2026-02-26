@@ -45,45 +45,42 @@ public class Room
 
         if(game == null)
             game = new(players[0], players[1]);
+
     }
 
     public async Task<IResponse> GameResponse(string playerID, int x, int y)
     {
-        string?[][] table;
-        bool draw = false;
-        if(game.MakeMove(playerID, x, y))
+        if (game == null)
+            throw new Exception("Game not started");
+
+        var result = game.MakeMove(playerID, x, y);
+
+        if (result.winner != null)
         {
-            draw = true;
-            int draws = game.SendDraw(draw);
             return new WinnerResponse
-                {
-                    winner = null,
-                    winnerMoves = null,
-                    isDrawEvent = true,
-                    draws = draws,
-                    players = this.players
-                };
+            {
+                winner = result.winner,
+                winnerMoves = result.winnerMoves,
+                isDrawEvent = result.isDrawEvent,
+                draws = result.draws,
+                players = players
+            };
         }
-        else
+        if (result.isDrawEvent)
         {
-            if (playerID == game.SendCurrentTurn())
+            return new WinnerResponse
             {
-                int draws = game.SendDraw(draw);
-                return new WinnerResponse
-                {
-                    winner = playerID,
-                    winnerMoves = table,
-                    isDrawEvent = false,
-                    draws = draws,
-                    players = this.players
-
-
-                };
-            }
-            else
-            {
-                
-            }
+                winner = null,
+                winnerMoves = null,
+                isDrawEvent = result.isDrawEvent,
+                draws = result.draws,
+                players = players
+            };
         }
+        return new MakeMoveResponse
+        {
+            currentTurn = result.currentTurn,
+            table = result.table
+        };
     }
 }

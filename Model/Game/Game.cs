@@ -34,14 +34,36 @@ public class Game
 
         table[x,y] = currentTurn.type;
 
-        if (CheckWinner())
+        var winnerMoves = CheckWinner();
+        if (winnerMoves != null)
+        {
+            int[][] winnerMovesResponse = WinnerMovesConvert(winnerMoves);
+            return new GameResult
+            {
+                winner = playerId,
+                winnerMoves = winnerMovesResponse,
+                isDrawEvent = false,
+                draws = draws
+            };
+        }
+        else if (HasDraw())
         {
             return new GameResult
             {
-                
+                isDrawEvent = true,
+                draws = draws
             };
         }
-        ChangeTurn();
+        else
+        {
+            ChangeTurn();
+            string? [][] tableResponse = TableConvert();
+            return new GameResult
+            {
+                currentTurn = currentTurn.id,
+                table = tableResponse
+            };
+        }
     }
 
     private int[,]? CheckWinner()
@@ -50,47 +72,52 @@ public class Game
         {
             if(IsEqual(this.table[i,0], this.table[i,1], this.table[i,2]))
             {
-                int[,] winnerBlocks = new int[,]
+                currentTurn.wins++;
+                return new int[,]
                 {
                     {i,0},
                     {i,1},
                     {i,2}
                 };
+                
             };
 
             if(IsEqual(this.table[0,i], this.table[1,i], this.table[2,i]))
             {
-                int[,] winnerBlocks = new int[,]
+                currentTurn.wins++;
+                return new int[,]
                 {
                     {0,i},
                     {1,i},
                     {2,i}
                 };
-                return true;
+                
             }
         }
         if(IsEqual(this.table[0,0], this.table[1,1], this.table[2,2]))
-        {
-            int[,] winnerBlocks = new int[,]
+        {   
+            currentTurn.wins++;
+            return new int[,]
                 {
                     {0,0},
                     {1,1},
                     {2,2}
                 };
-                return true;
+                
         }
 
         if(IsEqual(this.table[0,2], this.table[1,1], this.table[2,0]))
         {
-            int[,] winnerBlocks = new int[,]
+            currentTurn.wins++;
+            return new int[,]
                 {
                     {0,2},
                     {1,1},
                     {2,0}
                 };
-                return true;
+                
         }
-        return false;
+        return null;
     }
 
     private bool HasDraw()
@@ -101,11 +128,11 @@ public class Game
             {
                 if (this.table[i,j] == null)
                 {
-                    return false;
-                    
+                    return false;                    
                 }
             }
         }
+        draws++;
         return true;
     }
 
@@ -124,11 +151,9 @@ public class Game
         await Task.Delay(1000);
         table = new string[3,3];
         currentTurn = playerX;
-        TableConvert();
-        SendCurrentTurn();
     }
 
-    public string?[][] TableConvert()
+    private string?[][] TableConvert()
     {
         int rows = table.GetLength(0);
         int cols = table.GetLength(1);
@@ -147,25 +172,23 @@ public class Game
         return tableResult;
     }
 
-    public void SendPlayer(Player player)
+    private int[][] WinnerMovesConvert(int[,] winnerMoves)
     {
-        
-        //playerId = player.id,
-        //playerType = player.type
-    }
+        int rows = winnerMoves.GetLength(0);
+        int cols = winnerMoves.GetLength(1);
 
-    public void SendCurrentTurn()
-    {
-        //playerTurnId = currentTurn.id;
-    }
+        var winnerMovesResult = new int[rows][];
 
-    public int SendDraw(bool draw)
-    {
-        if (draw)
+        for (int i = 0; i < rows; i++)
         {
-            return draws++;
+            winnerMovesResult[i] = new int[cols];
+
+            for (int j = 0; j < cols; j++)
+            {
+                winnerMovesResult[i][j] = winnerMoves[i, j];
+            }
         }
-        return draws;
+        return winnerMovesResult;
     }
 
     private bool IsEqual(string a, string b, string c)
@@ -173,12 +196,13 @@ public class Game
         return a != null && a == b && b == c;
     }
 
-    public class GameResult()
+    public class GameResult
     {
-        public bool isDraw {get; set; }
+        public bool isDrawEvent {get; set; }
         public string? winner {get; set; }
         public string? [][] table {get; set; } = default!;
-        public string? [][] winnerMoves {get; set; } = default!;
-        public string currentTurnId { get; set; } = string.Empty;
+        public int [][] winnerMoves {get; set; } = default!;
+        public string currentTurn { get; set; } = string.Empty;
+        public int draws {get; set; }
     }
 }
