@@ -1,27 +1,21 @@
-using model.game.enums;
-
 namespace model.game;
 
 public class Game
 {
-    private Types[,] table = new Types[3,3];
+    private string[,] table = new string[3,3];
     private Player currentTurn;
     private Player playerX;
     private Player playerO;
-    private int draws = 0;
+    private int draws;
 
     public Game(Player playerX, Player playerO)
     {
         this.playerX = playerX;
         this.playerO = playerO;
         currentTurn = playerX;
-        SendTable();
-        SendPlayer(playerX);
-        SendPlayer(playerO);
-        SendCurrentTurn();
     }
 
-    public async Task MakeMove(string playerId, int x, int y)
+    public GameResult MakeMove(string playerId, int x, int y)
     {
         if (currentTurn.id != playerId)
         {
@@ -33,74 +27,97 @@ public class Game
             throw new Exception("Invalid position");
         }
 
-        if (table[x,y] != Types.Empty)
+        if (table[x,y] != null)
         {
             throw new Exception("Block already occupied");
         }
 
-        this.table[x,y] = currentTurn.type;
-        SendTable();
-        if (CheckWinner() || HasDraw())
+        table[x,y] = currentTurn.type;
+
+        var winnerMoves = CheckWinner();
+        if (winnerMoves != null)
         {
-            await Reset();
-            return;
+            int[][] winnerMovesResponse = WinnerMovesConvert(winnerMoves);
+            return new GameResult
+            {
+                winner = playerId,
+                winnerMoves = winnerMovesResponse,
+                isDrawEvent = false,
+                draws = draws
+            };
         }
-        ChangeTurn();
-        SendCurrentTurn();
+        else if (HasDraw())
+        {
+            return new GameResult
+            {
+                isDrawEvent = true,
+                draws = draws
+            };
+        }
+        else
+        {
+            ChangeTurn();
+            string? [][] tableResponse = TableConvert();
+            return new GameResult
+            {
+                currentTurn = currentTurn.id,
+                table = tableResponse
+            };
+        }
     }
 
-    private bool CheckWinner()
+    private int[,]? CheckWinner()
     {
         for (int i = 0; i < 3; i++)
         {
             if(IsEqual(this.table[i,0], this.table[i,1], this.table[i,2]))
             {
-                int[,] winnerBlocks = new int[,]
+                currentTurn.wins++;
+                return new int[,]
                 {
                     {i,0},
                     {i,1},
                     {i,2}
                 };
-                SendWinnerNotification(currentTurn.id, winnerBlocks);
-                return true;
+                
             };
 
             if(IsEqual(this.table[0,i], this.table[1,i], this.table[2,i]))
             {
-                int[,] winnerBlocks = new int[,]
+                currentTurn.wins++;
+                return new int[,]
                 {
                     {0,i},
                     {1,i},
                     {2,i}
                 };
-                SendWinnerNotification(currentTurn.id, winnerBlocks);
-                return true;
+                
             }
         }
         if(IsEqual(this.table[0,0], this.table[1,1], this.table[2,2]))
-        {
-            int[,] winnerBlocks = new int[,]
+        {   
+            currentTurn.wins++;
+            return new int[,]
                 {
                     {0,0},
                     {1,1},
                     {2,2}
                 };
-                SendWinnerNotification(currentTurn.id, winnerBlocks);
-                return true;
+                
         }
 
         if(IsEqual(this.table[0,2], this.table[1,1], this.table[2,0]))
         {
-            int[,] winnerBlocks = new int[,]
+            currentTurn.wins++;
+            return new int[,]
                 {
                     {0,2},
                     {1,1},
                     {2,0}
                 };
-                SendWinnerNotification(currentTurn.id, winnerBlocks);
-                return true;
+                
         }
-        return false;
+        return null;
     }
 
     private bool HasDraw()
@@ -109,65 +126,83 @@ public class Game
         {
             for (int j = 0; j < 3; j++)
             {
-                if (this.table[i,j] == Types.Empty)
+                if (this.table[i,j] == null)
                 {
-                    return false;
-                    
+                    return false;                    
                 }
             }
         }
-        SendDrawNotification();
+        draws++;
         return true;
     }
 
     private void ChangeTurn()
     {
-        if (this.currentTurn == this.playerX)
+        if (currentTurn == playerX)
         {
-            this.currentTurn = this.playerO;
+            currentTurn = playerO;
             return;
         }
-        this.currentTurn = this.playerX;
+        currentTurn = playerX;
     }
 
     private async Task Reset()
     {
         await Task.Delay(1000);
-        table = new Types[3,3];
+        table = new string[3,3];
         currentTurn = playerX;
-        SendTable();
-        SendCurrentTurn();
     }
 
-    public Types[,] SendTable()
+    private string?[][] TableConvert()
     {
-        return table;
+        int rows = table.GetLength(0);
+        int cols = table.GetLength(1);
+
+        var tableResult = new string?[rows][];
+
+        for (int i = 0; i < rows; i++)
+        {
+            tableResult[i] = new string?[cols];
+
+            for (int j = 0; j < cols; j++)
+            {
+                tableResult[i][j] = table[i, j];
+            }
+        }
+        return tableResult;
     }
 
-    public string SendPlayer(Player player)
+    private int[][] WinnerMovesConvert(int[,] winnerMoves)
     {
-        return player.id;
+        int rows = winnerMoves.GetLength(0);
+        int cols = winnerMoves.GetLength(1);
+
+        var winnerMovesResult = new int[rows][];
+
+        for (int i = 0; i < rows; i++)
+        {
+            winnerMovesResult[i] = new int[cols];
+
+            for (int j = 0; j < cols; j++)
+            {
+                winnerMovesResult[i][j] = winnerMoves[i, j];
+            }
+        }
+        return winnerMovesResult;
     }
 
-    public string SendCurrentTurn()
+    private bool IsEqual(string a, string b, string c)
     {
-        return currentTurn.id;
+        return a != null && a == b && b == c;
     }
 
-    private void SendWinnerNotification(string playerId, int[,] winnerBlocks)
+    public class GameResult
     {
-        currentTurn.wins++;
-        Console.WriteLine($"Sending winner notification to player: {playerId} with winner blocks: {winnerBlocks}. {playerId} has {currentTurn.wins} wins now");
-    }
-
-    private void SendDrawNotification()
-    {
-        draws++;
-        Console.WriteLine($"The game ended in a draw. Draws equals {draws}");
-    }  
-
-    private bool IsEqual(Types a, Types b, Types c)
-    {
-        return a != Types.Empty && a == b && b == c;
+        public bool isDrawEvent {get; set; }
+        public string? winner {get; set; }
+        public string? [][] table {get; set; } = default!;
+        public int [][] winnerMoves {get; set; } = default!;
+        public string currentTurn { get; set; } = string.Empty;
+        public int draws {get; set; }
     }
 }
