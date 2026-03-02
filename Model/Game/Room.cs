@@ -15,7 +15,6 @@ public class Room
         GameStart();
     }
 
-
     public static string GenerateRoomId(int length = 8)
     {
         const string chars = "ABCDEFGHIJKLMNOPQRSTUVXZ0123456789";
@@ -47,6 +46,8 @@ public class Room
     
     public async Task<IResponse> GameResponse(string playerID, int x, int y)
     {
+        await Task.Yield();
+
         if (game == null)
             throw new Exception("Game not started");
 

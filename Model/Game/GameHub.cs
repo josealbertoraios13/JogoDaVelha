@@ -156,9 +156,7 @@ public sealed class GameHub : Hub
 
         Game ?game;
         lock (room)
-        {
             game = room.game;
-        }
 
         if(game == null)
             throw new HubException("Game not started");
@@ -166,6 +164,13 @@ public sealed class GameHub : Hub
         var response = await room.GameResponse(idConnection, block.x, block.y);
 
         await Clients.Group(room.id).SendAsync("MakedMove", response);
+
+        if(response is WinnerResponse)
+        {
+            var resetResponse = await room.GameReset();
+
+            await Clients.Group(room.id).SendAsync("Reset", response);
+        }
 
         return response;
     }
