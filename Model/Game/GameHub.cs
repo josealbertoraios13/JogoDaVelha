@@ -163,7 +163,7 @@ public sealed class GameHub : Hub
         if(game == null)
             throw new HubException("Game not started");
 
-        var response = await room.GameResponse(idConnection, x, y); //Poderia iniciar no Room.GameResponse?
+        var response = await room.GameResponse(idConnection, block.x, block.y);
 
         await Clients.Group(room.id).SendAsync("MakedMove", response);
 

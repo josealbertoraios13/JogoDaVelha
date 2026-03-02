@@ -1,5 +1,3 @@
-using System.Collections.Concurrent;
-using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using model.responses;
 
@@ -45,9 +43,8 @@ public class Room
 
         if(game == null)
             game = new(players[0], players[1]);
-
     }
-
+    
     public async Task<IResponse> GameResponse(string playerID, int x, int y)
     {
         if (game == null)
@@ -77,10 +74,23 @@ public class Room
                 players = players
             };
         }
-        return new MakeMoveResponse
+        return new UpdateTableResponse
         {
             currentTurn = result.currentTurn,
             table = result.table
+        };
+    }
+
+    public async Task<IResponse> GameReset()
+    {
+        if (game == null)
+            throw new Exception("Game not started");
+
+        var reset = await game.Reset();
+        return new UpdateTableResponse
+        {
+            currentTurn = reset.currentTurn,
+            table = reset.table,
         };
     }
 }

@@ -146,11 +146,17 @@ public class Game
         currentTurn = playerX;
     }
 
-    private async Task Reset()
+    public async Task<GameResult> Reset()
     {
-        await Task.Delay(1000);
+        await Task.Delay(5000);
         table = new string[3,3];
+        string? [][] tableReset = TableConvert();
         currentTurn = playerX;
+        return new GameResult
+        {
+            currentTurn = currentTurn.id,
+            table = tableReset 
+        };
     }
 
     private string?[][] TableConvert()
@@ -201,7 +207,7 @@ public class Game
         public bool isDrawEvent {get; set; }
         public string? winner {get; set; }
         public string? [][] table {get; set; } = default!;
-        public int [][] winnerMoves {get; set; } = default!;
+        public int [][]? winnerMoves {get; set; }
         public string currentTurn { get; set; } = string.Empty;
         public int draws {get; set; }
     }

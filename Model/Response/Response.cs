@@ -1,4 +1,3 @@
-using System;
 using model.game;
 using model.requests;
 
@@ -16,7 +15,7 @@ public record PlayerResponse : IResponse
     public Player? player {get; init;}
 }
 
-public record MakeMoveResponse : IResponse
+public record UpdateTableResponse : IResponse
 {
     public string currentTurn {get; init;} = string.Empty;
     public string?[][] ?table {get; init;}
