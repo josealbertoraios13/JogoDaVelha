@@ -171,20 +171,27 @@ public sealed class GameHub : Hub
         return response;
     }
 
-    public async Task<IResponse> Message(model.requests.Message request)
+    public async Task<IResponse> Message(MessageRequest request)
     {
         var message = request.message;
         if(string.IsNullOrEmpty(message))
             throw new HubException("Message is null");
 
-        var response = new model.responses.Message()
+        var idRoom = request.idRoom;
+        if(string.IsNullOrEmpty(idRoom))
+            throw new HubException("idRoom can't be null");
+
+        if(!activatedRooms.TryGetValue(idRoom, out var room))
+            throw new HubException("This room does not exist");
+
+        var response = new MessageResponse()
         {
             playerID = Context.ConnectionId,
             message = message,
-            createdAt = request.createdAt
+            createdAt = DateTime.Now
         };
 
-        //await Clients.Group().SendAsync
+        await Clients.Group(idRoom).SendAsync("Message", response);
 
         return response;
     }

@@ -21,7 +21,7 @@ public record MakeMoveResponse : IResponse
     public string [,] ?table {get; init;}
 }
 
-public partial record Message : IResponse,  IRequest
+public record MessageResponse : IResponse
 {
     public string playerID {get; init;} = string.Empty;
     public string message {get; init;} = string.Empty;
