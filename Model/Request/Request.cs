@@ -31,9 +31,9 @@ public record MakeMoveRequest : IRequest
     public string IdRoom {get; init;} = string.Empty;
 }
 
-public partial record Message : IResponse,  IRequest
+public record MessageRequest : IResponse
 {
-    public string playerID {get; init;} = string.Empty;
+    public string idRoom {get; init;} = string.Empty;
     public string message {get; init;} = string.Empty;
     public DateTime createdAt {get; init;}
 }

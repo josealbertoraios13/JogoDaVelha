@@ -32,7 +32,7 @@ public record WinnerResponse : IResponse
 
 }
 
-public partial record Message : IResponse,  IRequest
+public record MessageResponse : IResponse
 {
     public string playerID {get; init;} = string.Empty;
     public string message {get; init;} = string.Empty;
