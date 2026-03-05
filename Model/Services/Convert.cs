@@ -1,10 +1,9 @@
-using interfaces.convert;
 using model.game;
 using model.responses;
 
-public class Convert : IConvert
+public class Convert
 {
-    public List<PlayerResponse> PlayerListToResponseList(List<Player> players)
+    public static List<PlayerResponse> PlayerListToResponseList(List<Player> players)
     {
         List<PlayerResponse> playerResponses = new();
 
@@ -17,7 +16,7 @@ public class Convert : IConvert
         return playerResponses;
     }
 
-    public PlayerResponse PlayerToResponse(Player player)
+    public static PlayerResponse PlayerToResponse(Player player)
     {
         return new PlayerResponse()
         {
@@ -29,12 +28,12 @@ public class Convert : IConvert
         };
     }
 
-    public RoomResponse RoomToResponse(Room room)
+    public static RoomResponse RoomToResponse(Room room)
     {
         return new RoomResponse() 
         {
             id = room.id,
-            players = room.players 
+            players = Convert.PlayerListToResponseList(room.players)
         }; 
     }
 }

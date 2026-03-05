@@ -1,4 +1,3 @@
-using interfaces.convert;
 using interfaces.roomManager;
 using model.services;
 
@@ -22,7 +21,6 @@ builder.Services.AddCors(options =>
         });
 
 builder.Services.AddSingleton<IRoomManager, RoomManager>();
-builder.Services.AddSingleton<IConvert, Convert>();
 
 var app = builder.Build();
 

@@ -3,16 +3,13 @@ using model.requests;
 using model.responses;
 using interfaces.responses;
 using interfaces.roomManager;
-using interfaces.convert;
 
 public sealed class GameHub : Hub
 {   
     private readonly IRoomManager _roomManager;
-    private readonly IConvert _convert;
-    public GameHub(IRoomManager roomManager, IConvert convert)
+    public GameHub(IRoomManager roomManager)
     {
         _roomManager = roomManager;
-        _convert = convert;
     }
 
     public override async Task OnConnectedAsync()
@@ -47,7 +44,7 @@ public sealed class GameHub : Hub
 
         Console.WriteLine($"(CreateRoom) - Sending event results successfully. Connection ID: {connectionId}");   
 
-        return _convert.RoomToResponse(room);
+        return Convert.RoomToResponse(room);
     }
 
     public async Task<IResponse> JoinRoom(JoinRequest request)
@@ -65,13 +62,13 @@ public sealed class GameHub : Hub
 
         await Groups.AddToGroupAsync(connectionId, roomId);
 
-        var playerResponse = _convert.PlayerToResponse(player);
+        var playerResponse = Convert.PlayerToResponse(player);
 
         await Clients.Group(room.id).SendAsync("PlayerJoined", playerResponse);
 
         Console.WriteLine($"(JoinRoom) - Sending event results successfully. Connection ID: {connectionId}"); 
 
-        return _convert.RoomToResponse(room);
+        return Convert.RoomToResponse(room);
     }
     
     public async Task<IResponse> LeaveRoom(LeaveRequest request)
@@ -88,14 +85,14 @@ public sealed class GameHub : Hub
         var room = leaveRoom.room;
         var player = leaveRoom.player;
 
-        var playerResponse = _convert.PlayerToResponse(player);
+        var playerResponse = Convert.PlayerToResponse(player);
 
         await Groups.RemoveFromGroupAsync(connectionId, roomId);
         await Clients.Group(room.id).SendAsync("PlayerLeft", playerResponse);
 
         Console.WriteLine($"(LeaveRoom) - Sending event results successfully. Connection ID: {connectionId}"); 
 
-        return _convert.RoomToResponse(room);
+        return Convert.RoomToResponse(room);
     }
 
     public async Task<IResponse> MakeMove(MakeMoveRequest request)
@@ -108,7 +105,7 @@ public sealed class GameHub : Hub
 
         ValidateData(connectionId, roomId);
 
-        var response = _roomManager.ExecuteMove(roomId, connectionId, block.x, block.y, _convert, out var room);
+        var response = _roomManager.ExecuteMove(roomId, connectionId, block.x, block.y, out var room);
 
         await Clients.Group(roomId).SendAsync("MakedMove", response);
 

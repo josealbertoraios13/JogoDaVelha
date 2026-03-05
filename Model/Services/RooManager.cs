@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using interfaces.convert;
 using interfaces.responses;
 using interfaces.roomManager;
 using Microsoft.AspNetCore.SignalR;
@@ -72,14 +71,14 @@ public class RoomManager : IRoomManager
         return (room, player);
     }
 
-    public IResponse ExecuteMove(string roomId, string connectionId, int x, int y, IConvert _convert, out Room selectedRoom)
+    public IResponse ExecuteMove(string roomId, string connectionId, int x, int y, out Room selectedRoom)
     {
         var room = GetRoom(roomId);
 
         lock (room)
         {
             selectedRoom = room;
-            return room.GameResponse(connectionId, x, y, _convert);
+            return room.GameResponse(connectionId, x, y);
         }
     }
 
