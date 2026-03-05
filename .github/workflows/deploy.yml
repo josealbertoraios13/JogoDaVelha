@@ -7,19 +7,26 @@ on:
 jobs:
   build-and-deploy:
     runs-on: self-hosted
+    env:
+      # Define uma pasta local para o .NET onde o runner tem permissão total
+      DOTNET_INSTALL_DIR: ${{ github.workspace }}/dotnet-sdk
 
     steps:
       - name: 📂 Checkout do Código
         uses: actions/checkout@v4
+        with:
+          clean: true
       
       - name: 🛠️ Setup .NET (SDK para Build)
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
-          dotnet-install-dir: './dotnet'
 
       - name: 📦 Restaurar e Publicar
         run: |
+          # Adiciona o binário do .NET recém-baixado ao PATH do Linux
+          export PATH="$DOTNET_INSTALL_DIR:$PATH"
+
           # O comando publish cria uma pasta 'out' com apenas o necessário para rodar
           dotnet publish JogoDaVelha.csproj -c Release -o ./publish_output
 
@@ -45,4 +52,7 @@ jobs:
 
       - name: 🧹 Cleanup Runner
         if: always()
-        run: rm -rf *
+        run: |
+          # Remove a pasta de build e o SDK temporário para não ocupar disco no runner
+          rm -rf ./publish_output
+          rm -rf $DOTNET_INSTALL_DIR
