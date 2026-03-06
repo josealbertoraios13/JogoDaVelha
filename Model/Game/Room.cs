@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using interfaces.responses;
 using model.responses;
 
 namespace model.game;
@@ -44,10 +45,8 @@ public class Room
             game = new(players[0], players[1]);
     }
     
-    public async Task<IResponse> GameResponse(string playerID, int x, int y)
+    public IResponse GameResponse(string playerID, int x, int y)
     {
-        await Task.Yield();
-
         if (game == null)
             throw new Exception("Game not started");
 
@@ -61,7 +60,7 @@ public class Room
                 winnerMoves = result.winnerMoves,
                 isDrawEvent = result.isDrawEvent,
                 draws = result.draws,
-                players = players
+                players = Convert.PlayerListToResponseList(players)
             };
         }
         if (result.isDrawEvent)
@@ -72,7 +71,7 @@ public class Room
                 winnerMoves = null,
                 isDrawEvent = result.isDrawEvent,
                 draws = result.draws,
-                players = players
+                players = Convert.PlayerListToResponseList(players)
             };
         }
         return new UpdateTableResponse

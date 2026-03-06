@@ -1,3 +1,5 @@
+using interfaces.roomManager;
+using model.services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +20,8 @@ builder.Services.AddCors(options =>
             });
         });
 
+builder.Services.AddSingleton<IRoomManager, RoomManager>();
+
 var app = builder.Build();
 
 app.UseRouting();
@@ -25,5 +29,7 @@ app.UseRouting();
 app.UseCors();
 
 app.MapHub<GameHub>("/GameHub");
+
+Console.WriteLine("Initial setup completed successfully!");
 
 await app.RunAsync();

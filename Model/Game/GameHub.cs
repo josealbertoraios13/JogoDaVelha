@@ -1,221 +1,173 @@
-using System;
-using System.Collections.Concurrent;
-using System.Text.Json;
 using Microsoft.AspNetCore.SignalR;
-using model.game;
 using model.requests;
 using model.responses;
-
-// Adicionei Logs para melhor rastreamento das ações dos clientes durante o desenvolvimento.
-// TODO: Remover logs antes da versão de produção
+using interfaces.responses;
+using interfaces.roomManager;
 
 public sealed class GameHub : Hub
 {   
-    private static ConcurrentDictionary<string, Room> activatedRooms = new();
+    private readonly IRoomManager _roomManager;
+    public GameHub(IRoomManager roomManager)
+    {
+        _roomManager = roomManager;
+    }
+
     public override async Task OnConnectedAsync()
     {
-        Console.WriteLine($"🔌 Cliente conectado: {Context.ConnectionId}");
+        Console.WriteLine($"🔌 Client connected: {Context.ConnectionId}");
         await base.OnConnectedAsync();
     }
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        Console.WriteLine($"🔌 Cliente desconectado: {Context.ConnectionId}");
+        Console.WriteLine($"🔌 Client disconnected: {Context.ConnectionId}");
         if (exception != null)
         {
-            Console.WriteLine($"❌ Erro na desconexão: {exception.Message}");
+            Console.WriteLine($"❌ Connection error: {exception.Message}");
         }
         await base.OnDisconnectedAsync(exception);
     }
 
     public async Task<IResponse> CreateRoom(CreateResquest resquest) 
     { 
-        var idConnection = Context.ConnectionId; 
-        Console.WriteLine($"CreateRoom event called by connection ID: {idConnection}");
+        var connectionId = Context.ConnectionId; 
+        Console.WriteLine($"(CreateRoom) - event called by connection ID: {connectionId}");
 
         var name = resquest.name; 
-        if (string.IsNullOrWhiteSpace(name)) 
-            throw new HubException("Name can't be null or empty"); 
-            
         var avatar = resquest.avatar; 
-        if (string.IsNullOrWhiteSpace(avatar)) 
-            throw new HubException("Avatar can't be null or empty"); 
-            
-        
-        var player = new Player(idConnection, name, avatar); 
-        
-        var room = new Room()
-        {
-            id = Room.GenerateRoomId()
-        };
 
-        room.players.Add(player);
-
-        activatedRooms.TryAdd(room.id, room);
+        ValidateData(connectionId, name, avatar);
+        
+        var room = _roomManager.CreateRoom(connectionId, name, avatar);
         
         await Groups.AddToGroupAsync(Context.ConnectionId, room.id); 
 
-        Console.WriteLine($"Sending event results successfully. Connection ID: {idConnection}");   
+        Console.WriteLine($"(CreateRoom) - Sending event results successfully. Connection ID: {connectionId}");   
 
-        return new RoomResponse() { room = room }; 
+        return Convert.RoomToResponse(room);
     }
 
     public async Task<IResponse> JoinRoom(JoinRequest request)
     {
-        var idConnection = Context.ConnectionId; 
-        Console.WriteLine($"JoinRoom event called by connection ID: {idConnection}");
+        var connectionId = Context.ConnectionId; 
+        Console.WriteLine($"(JoinRoom) - event called by connection ID: {connectionId}");
 
-        var idRoom = request.IdRoom;
-        if(string.IsNullOrWhiteSpace(idRoom))
-            throw new HubException("Id room can't be null or empty");
-
+        var roomId = request.roomId;
         var name = request.name;
-        if(string.IsNullOrWhiteSpace(name))
-            throw new HubException("Name can't be null or empty");
-
         var avatar = request.avatar;
-        if(string.IsNullOrWhiteSpace(avatar))
-            throw new HubException("Avatar can't be null or empty");
 
-        if(!activatedRooms.TryGetValue(idRoom, out var room))
-            throw new HubException("This Room does not exist");
+        ValidateData(connectionId, roomId, name, avatar);
 
-        Player ?player;
-        lock (room)
-        {
-            if(room.players.Count >= 2)
-                throw new HubException("This room is full");
+        var room = _roomManager.JoinRoom(roomId, connectionId, name, avatar, out var player);
 
-            player = room.players.FirstOrDefault(p => p.id == idConnection);
-            if(player != null)
-                throw new HubException("This player is already in the room");
+        await Groups.AddToGroupAsync(connectionId, roomId);
 
-            player = new Player(idConnection, name, avatar);
+        var playerResponse = Convert.PlayerToResponse(player);
 
-            room.players.Add(player);
+        await Clients.Group(roomId).SendAsync("PlayerJoined", playerResponse);
 
-            room.Update();
-        }
+        Console.WriteLine($"(JoinRoom) - Sending event results successfully. Connection ID: {connectionId}"); 
 
-        await Groups.AddToGroupAsync(idConnection, room.id);
-
-        await Clients.Group(room.id).SendAsync("PlayerJoined", new PlayerResponse() {player = player});
-
-        Console.WriteLine($"Sending event results successfully. Connection ID: {idConnection}"); 
-
-        return new RoomResponse() { room = room }; 
+        return Convert.RoomToResponse(room);
     }
     
-    public async Task<IResponse> LeaveRoom(string idRoom)
+    public async Task<IResponse> LeaveRoom(LeaveRequest request)
     {
-        var idConnection = Context.ConnectionId; 
-        Console.WriteLine($"JoinRoom event called by connection ID: {idConnection}");
+        var connectionId = Context.ConnectionId; 
+        Console.WriteLine($"(LeaveRoom) - event called by connection ID: {connectionId}");
 
-        if(string.IsNullOrEmpty(idRoom))
-            throw new HubException("idRoom can't be null");
+        var roomId = request.roomId;
 
-        if(!activatedRooms.TryGetValue(idRoom, out var room))
-            throw new HubException("This room does not exist");
+        ValidateData(connectionId, roomId);
 
-        Player? player;
-        lock(room)
-        {
-            player = room.players.FirstOrDefault(p => p.id == idConnection);
-            if(player == null)
-                throw new HubException("This player is not in this room");
+        var leaveRoom = _roomManager.LeaveRoom(roomId, connectionId);
 
-            room.players.Remove(player);
+        var room = leaveRoom.room;
+        var player = leaveRoom.player;
 
-            if(room.players.Count == 0)
-                if(activatedRooms.TryRemove(idRoom, out var removedRoom))
-                    Console.WriteLine($"this {removedRoom} was removed"); // Se Quiser posso enviar isso, mas acredito ser desnecessário
-        }
+        var playerResponse = Convert.PlayerToResponse(player);
 
-        await Groups.RemoveFromGroupAsync(idConnection, room.id);
+        await Groups.RemoveFromGroupAsync(connectionId, roomId);
+        await Clients.Group(room.id).SendAsync("PlayerLeft", playerResponse);
 
-        await Clients.Group(room.id).SendAsync("PlayerLeft", new PlayerResponse() {player = player});
+        Console.WriteLine($"(LeaveRoom) - Sending event results successfully. Connection ID: {connectionId}"); 
 
-        Console.WriteLine($"Sending event results successfully. Connection ID: {idConnection}"); 
-
-        return new RoomResponse() { room = room }; 
+        return Convert.RoomToResponse(room);
     }
 
     public async Task<IResponse> MakeMove(MakeMoveRequest request)
     {
-        var idConnection = Context.ConnectionId; 
-        Console.WriteLine($"JoinRoom event called by connection ID: {idConnection}");
+        var connectionId = Context.ConnectionId; 
+        Console.WriteLine($"MakeMove event called by connection ID: {connectionId}");
 
-        var idRoom = request.IdRoom;
-        if(string.IsNullOrEmpty(idRoom))
-            throw new HubException("idRoom can't be null");
-
-        if(!activatedRooms.TryGetValue(idRoom, out var room))
-            throw new HubException("This room does not exist");
-
+        var roomId = request.roomId;
         var block =  request.Block;
 
-        Game ?game;
-        lock (room)
-            game = room.game;
+        ValidateData(connectionId, roomId);
 
-        if(game == null)
-            throw new HubException("Game not started");
+        var response = _roomManager.ExecuteMove(roomId, connectionId, block.x, block.y, out var room);
 
-        var response = await room.GameResponse(idConnection, block.x, block.y);
-
-        await Clients.Group(room.id).SendAsync("MakedMove", response);
+        await Clients.Group(roomId).SendAsync("MakedMove", response);
 
         if(response is WinnerResponse)
         {
             var resetResponse = await room.GameReset();
 
             await Clients.Group(room.id).SendAsync("Reset", response);
+
+            Console.WriteLine("It had a draw or a winner.");
         }
+
+        Console.WriteLine($"Sending event results successfully. Connection ID: {connectionId}"); 
 
         return response;
     }
 
-    public async Task<IResponse> Message(MessageRequest request)
+    public async Task<IResponse> SendMessage(MessageRequest request)
     {
+        var connectionId =  Context.ConnectionId;
+        Console.WriteLine($"MakeMove event called by connection ID: {connectionId}");
+        
         var message = request.message;
-        if(string.IsNullOrEmpty(message))
-            throw new HubException("Message is null");
+        var roomId = request.roomId;
 
-        var idRoom = request.idRoom;
-        if(string.IsNullOrEmpty(idRoom))
-            throw new HubException("idRoom can't be null");
+        ValidateData(connectionId, message, roomId);
 
-        if(!activatedRooms.TryGetValue(idRoom, out var room))
-            throw new HubException("This room does not exist");
+        var room = _roomManager.GetRoom(roomId);
 
         var response = new MessageResponse()
         {
-            playerID = Context.ConnectionId,
+            playerID = connectionId,
             message = message,
             createdAt = DateTime.Now
         };
 
-        await Clients.Group(idRoom).SendAsync("Message", response);
+        await Clients.Group(roomId).SendAsync("Message", response);
+
+        Console.WriteLine($"Sending event results successfully. Connection ID: {connectionId}");
 
         return response;
     }
 
-    public Task ResetGame()
-    {
-        Console.WriteLine($"🔄 ResetGame chamado por: {Context.ConnectionId}");
-        // Lógica de reset será implementada aqui
-        Console.WriteLine($"✅ Jogo resetado");
-        return Task.CompletedTask;
-    }
-
     public async Task TestConnection()
     {
-        Console.WriteLine($"🧪 TestConnection chamado por: {Context.ConnectionId}");
+        Console.WriteLine($"🧪 TestConnection called by: {Context.ConnectionId}");
         await Clients.Caller.SendAsync("ConnectionTest", new { 
-            message = "Conexão funcionando!", 
+            message = "Connection Working", 
             connectionId = Context.ConnectionId,
             timestamp = DateTime.Now
         });
-        Console.WriteLine($"✅ Resposta de teste enviada para {Context.ConnectionId}");
+        Console.WriteLine($"✅ Test result send for: {Context.ConnectionId}");
+    }
+
+    private void ValidateData(params string[] values)
+    {
+        foreach(var v in values)
+        {
+            if(string.IsNullOrWhiteSpace(v))
+            {
+                throw new HubException("Invalid data");
+            }
+        }
     }
 }
