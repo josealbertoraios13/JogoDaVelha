@@ -1,5 +1,4 @@
 using interfaces.responses;
-using model.game;
 
 namespace model.responses;
 

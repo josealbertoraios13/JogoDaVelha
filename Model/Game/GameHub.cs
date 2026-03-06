@@ -64,7 +64,7 @@ public sealed class GameHub : Hub
 
         var playerResponse = Convert.PlayerToResponse(player);
 
-        await Clients.Group(room.id).SendAsync("PlayerJoined", playerResponse);
+        await Clients.Group(roomId).SendAsync("PlayerJoined", playerResponse);
 
         Console.WriteLine($"(JoinRoom) - Sending event results successfully. Connection ID: {connectionId}"); 
 
